@@ -5,9 +5,36 @@ import (
 	"net"
 	"fmt"
 	"strings"
+	"strconv"
 )
 
+//global variable declaration
+type master struct{
+	address string
+	port int
+	networkAddr string
+	peers map[string]int
+	backupPeers map[string]string
+}
+
+var masterNode master
+
 func main()  {
+
+	//Start the server
+	StartServer()
+}
+
+
+/*
+Function which initializes the master struct with initial
+values which are parsed from the command line.
+
+Returns: nil
+ */
+func initializeMaster()  {
+
+	//parse the command line arguments
 	server := flag.String("serverAddr", "", "The address of the server to connect to." +
 		"Default is localhost")
 
@@ -15,36 +42,82 @@ func main()  {
 
 	flag.Parse()
 
+	//form the network address for the node
 	address := *server+":"+*port
 
-	AcceptAndProcess(address, &port)
+	//initialize the global variable
+	//representing master node
+	p, err := strconv.Atoi(*port)
+	if err != nil{
+		fmt.Printf("Conversion Error: %s", err.Error())
+	}
+
+	masterNode = master{address:*server, port:p, networkAddr:address,
+						peers:make(map[string]int), backupPeers:make(map[string]string)}
+
 }
 
-func AcceptAndProcess(address string, port **string){
-	adapter, err := net.Listen("tcp", address)
 
+/*
+Function which listens on the dedicated port specified
+for the master node and accepts the clients requests only
+to pass it to a go routine to handle the requests
+
+Returns: nil
+ */
+func acceptAndProcess(node master){
+
+	//listen on the designates network address
+	adapter, err := net.Listen("tcp", node.networkAddr)
+	if err != nil{
+		fmt.Printf("Error while listening to the on port: %d", node.port)
+		return
+	}
+
+	//until a SIGNAL interrupt is passed or an exception is
+	//raised, keep on accepting client connections and add it
+	//to the peer map.
 	for{
 
-		fmt.Println("Listening on Port: " + **port)
+		//debug information
+		fmt.Printf("\nListening on Port: %d\n", node.port)
 
-		if err != nil{
-			fmt.Printf("Error while listening to the on port: %s", **port)
-			break
-		}
-
+		//accept incoming connections
 		conn, err := adapter.Accept()
 		if err != nil {
 			println(err.Error())
 			continue
 		}
 
+		//start a go routine to handle
+		//the incoming connections
 		go handleConnection(conn)
 	}
 }
 
+
+/*
+Function which handles the incoming
+client requests to the server.
+It performs any necessary action and/or invokes
+other functions to complete the tasks
+
+Returns: nil
+ */
 func handleConnection(conn net.Conn){
+	//get the address of the tcp-client
 	clientAddr := conn.RemoteAddr().String()
 
+	//add the client to the peer list
+	networkAddr := strings.Split(clientAddr, ":")
+	clientPort, err := strconv.Atoi(networkAddr[1])
+	if err != nil{
+		fmt.Printf("COnversion Error: %s", err.Error())
+	}
+
+	masterNode.peers[networkAddr[0]] = clientPort
+
+	//debug information
 	fmt.Println("Connected Client: " + clientAddr)
 
 	info := make([]byte, 255)
@@ -65,4 +138,30 @@ func handleConnection(conn net.Conn){
 	}
 
 	conn.Close()
+}
+
+/*
+Function which returns the address of master struct
+for testing functions
+*/
+func StructAddr() *master {
+	return &masterNode
+}
+
+/*
+Function which starts the server and
+passes the initialized values for listening
+on the designated port.
+*/
+func StartServer()  {
+
+	//initialize the structure to define the
+	//master node
+	initializeMaster()
+
+	//once the master node is initialized,
+	//listen on the dedicated port and accept
+	//connections
+	acceptAndProcess(masterNode)
+
 }

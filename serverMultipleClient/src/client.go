@@ -18,11 +18,7 @@ func main()  {
 
 	flag.Parse()
 
-
-	//fmt.Printf("Enter the Sevrer address and Port: ")
-	//fmt.Scanf("%s %d", remoteAddr, remotePort)
-
-	conn, err :=net.Dial("tcp", *remoteAddr + string(*remotePort))
+	conn, err :=net.Dial("tcp", *remoteAddr + ":" + string(*remotePort))
 	//conn, err :=net.Dial("tcp", "127.0.0.1:9999")
 
 	if err != nil{
