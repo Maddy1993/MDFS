@@ -2,17 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="28fbae24-b9de-4cdd-adb6-96386197e59a" name="Default" comment="">
-      <change afterPath="$PROJECT_DIR$/pkg/windows_amd64/client.a" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pkg/windows_amd64/server.a" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/client/client.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/client/getIpAddress.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/cmd/clientBuild/main.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/cmd/serverBuild/main.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../docs/SystemDesign.txt" beforeDir="false" afterPath="$PROJECT_DIR$/../docs/SystemDesign.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/client.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/server.go" beforeDir="false" afterPath="$PROJECT_DIR$/src/server/server.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/server_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/tests/server_test.go" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -239,7 +230,7 @@
       <window_info anchor="bottom" id="Find" order="1" weight="0.32905984" />
       <window_info anchor="bottom" id="Database Changes" order="7" show_stripe_button="false" />
       <window_info anchor="bottom" id="Version Control" order="7" />
-      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.49932885" visible="true" weight="0.32905984" />
+      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.49932885" weight="0.32905984" />
       <window_info id="Structure" order="1" sideWeight="0.50106156" side_tool="true" weight="0.31543624" />
       <window_info anchor="bottom" id="Terminal" order="7" weight="0.32965517" />
       <window_info id="Favorites" order="2" side_tool="true" />
@@ -260,7 +251,8 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Reformatted server.go to allow testing" />
-    <option name="LAST_COMMIT_MESSAGE" value="Reformatted server.go to allow testing" />
+    <MESSAGE value="Changed project structure to match the go specifications." />
+    <option name="LAST_COMMIT_MESSAGE" value="Changed project structure to match the go specifications." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

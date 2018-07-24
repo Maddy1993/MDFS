@@ -16,3 +16,10 @@ Server:
     3. Knows its backup server
     4. Runs a synchronous light weight process to maintain updated information.
     5. Backup peer has its current Information stored in a savepoint until updated.
+
+Client:
+Maintain cache for knowing the peer previously contacted, after cache expiration check with the master again for a peer
+
+Future work:
+Eventual consistency - currently the file system will be built for one client (consistency comes into the picture when multiple
+clients are trying to access same file)
