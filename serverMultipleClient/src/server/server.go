@@ -1,4 +1,4 @@
-package main
+package server
 
 import (
 	"flag"
@@ -21,7 +21,7 @@ var masterNode master
 
 func main()  {
 
-	//Start the server
+	//Start the serverBuild
 	StartServer()
 }
 
@@ -35,7 +35,7 @@ Returns: nil
 func initializeMaster()  {
 
 	//parse the command line arguments
-	server := flag.String("serverAddr", "", "The address of the server to connect to." +
+	server := flag.String("serverAddr", "", "The address of the serverBuild to connect to." +
 		"Default is localhost")
 
 	port := flag.String("port", "9999", "Port to listen for incoming connections.")
@@ -75,7 +75,7 @@ func acceptAndProcess(node master){
 	}
 
 	//until a SIGNAL interrupt is passed or an exception is
-	//raised, keep on accepting client connections and add it
+	//raised, keep on accepting clientBuild connections and add it
 	//to the peer map.
 	for{
 
@@ -98,24 +98,25 @@ func acceptAndProcess(node master){
 
 /*
 Function which handles the incoming
-client requests to the server.
+clientBuild requests to the serverBuild.
 It performs any necessary action and/or invokes
 other functions to complete the tasks
 
 Returns: nil
  */
 func handleConnection(conn net.Conn){
-	//get the address of the tcp-client
+	//get the address of the tcp-clientBuild
 	clientAddr := conn.RemoteAddr().String()
 
-	//add the client to the peer list
+	//add the clientBuild to the peer list
 	networkAddr := strings.Split(clientAddr, ":")
 	clientPort, err := strconv.Atoi(networkAddr[1])
 	if err != nil{
 		fmt.Printf("COnversion Error: %s", err.Error())
 	}
 
-	masterNode.peers[networkAddr[0]] = clientPort
+	//masterNode.peers[networkAddr[0]] = clientPort
+	masterNode.peers[clientAddr] = clientPort
 
 	//debug information
 	fmt.Println("Connected Client: " + clientAddr)
@@ -149,7 +150,7 @@ func StructAddr() *master {
 }
 
 /*
-Function which starts the server and
+Function which starts the serverBuild and
 passes the initialized values for listening
 on the designated port.
 */

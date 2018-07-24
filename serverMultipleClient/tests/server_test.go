@@ -2,6 +2,9 @@ package tests
 
 import (
 	"testing"
+	"server"
+	"time"
+	"client"
 )
 
 func TestServer(t *testing.T)  {
@@ -10,9 +13,13 @@ func TestServer(t *testing.T)  {
 
 /*
 Function which tests for the values
-after the server has started
+after the serverBuild has started
  */
 func serverTest1(t *testing.T)  {
-	//Start the server
+	//Start the serverBuild
+	go server.StartServer()
 
+	time.Sleep(time.Second * 30)
+
+	go client.Start()
 }
