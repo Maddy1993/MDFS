@@ -59,6 +59,7 @@ const(
 	STORE = 3
 	BACKUP = 4
 	RESPONSE = 5
+	UPDATE = 6
 )
 
 /*
@@ -82,4 +83,25 @@ func CreatePacket(p_type int, content string, p_size uintptr) Packet {
 
 	//return the created packet
 	return packet_t
+}
+
+/*
+Function creates the Response packet based
+on the input and returns the instance of the
+response packet struct
+Params:
+	p_type: Packet Type(PEER/
+						FETCH/
+						STORE/
+						BACKUP/
+						RESPONSE
+	content: Content the packet will carry
+	p_size: size of the packet
+
+Returns: Instance of packet struct
+ */
+func CreateResponse(p_type int, backup bool, parent string) Response {
+	//create a packet with defined parameters
+	//and return the created packet
+	return Response{Ptype:p_type, Backup:backup, NetAddress:parent}
 }

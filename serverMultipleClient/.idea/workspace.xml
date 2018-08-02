@@ -2,9 +2,12 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="28fbae24-b9de-4cdd-adb6-96386197e59a" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/../docs/SystemDesign.txt" beforeDir="false" afterPath="$PROJECT_DIR$/../docs/SystemDesign.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/server/handler.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/windows_amd64/peer.a" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/windows_amd64/peer.a" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pkg/windows_amd64/server.a" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/windows_amd64/server.a" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/windows_amd64/utils.a" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/windows_amd64/utils.a" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/peer/getIpAddress.go" beforeDir="false" afterPath="$PROJECT_DIR$/src/peer/getIpAddress.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/peer/peer.go" beforeDir="false" afterPath="$PROJECT_DIR$/src/peer/peer.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/server/server.go" beforeDir="false" afterPath="$PROJECT_DIR$/src/server/server.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/utils/packet.go" beforeDir="false" afterPath="$PROJECT_DIR$/src/utils/packet.go" afterDir="false" />
@@ -26,22 +29,24 @@
       </usages-collector>
       <usages-collector id="statistics.file.extensions.open">
         <counts>
-          <entry key="go" value="20" />
+          <entry key="go" value="25" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.open">
         <counts>
-          <entry key="Go" value="20" />
+          <entry key="Go" value="25" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
-          <entry key="go" value="3587" />
+          <entry key="go" value="6426" />
+          <entry key="txt" value="4" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
-          <entry key="Go" value="3587" />
+          <entry key="Go" value="6426" />
+          <entry key="PLAIN_TEXT" value="4" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.go.postfix.template.usages.trigger">
@@ -56,13 +61,25 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/server/server.go">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="392">
-              <caret line="125" lean-forward="true" selection-start-line="125" selection-end-line="125" />
+            <state relative-caret-position="238">
+              <caret line="21" lean-forward="true" selection-start-line="21" selection-end-line="21" />
               <folding>
-                <element signature="e#2213#2394#0" />
-                <element signature="e#4129#4208#0" />
-                <element signature="e#4260#4375#0" />
+                <element signature="n#!!block;n#initializeMaster#0" />
+                <element signature="n#!!block;n#acceptAndProcess#0" />
                 <element signature="n#!!block;n#StartServer#0" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/src/server/handler.go">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="256">
+              <caret line="60" column="8" lean-forward="true" selection-start-line="60" selection-start-column="8" selection-end-line="60" selection-end-column="8" />
+              <folding>
+                <element signature="e#16#71#0" expanded="true" />
+                <element signature="n#!!block;n#handleConnection#0" />
               </folding>
             </state>
           </provider>
@@ -72,41 +89,29 @@
         <entry file="file://$PROJECT_DIR$/src/peer/peer.go">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="188">
-              <caret line="106" column="5" selection-start-line="106" selection-start-column="5" selection-end-line="106" selection-end-column="5" />
+              <caret line="296" column="45" selection-start-line="296" selection-start-column="45" selection-end-line="296" selection-end-column="45" />
               <folding>
                 <element signature="e#14#116#0" expanded="true" />
+                <element signature="n#!!block;n#Start#0" />
+                <element signature="e#711#835#0" />
                 <element signature="e#1406#1509#0" />
                 <element signature="e#2786#2892#0" />
                 <element signature="n#!!block;n#sendMessage#0" />
-                <element signature="n#!!block;n#listenAndAccept#0" />
+                <element signature="e#3477#3555#0" />
+                <element signature="e#4630#4637#0" />
+                <element signature="e#5257#5264#0" />
+                <element signature="e#4948#5020#0" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/peer/getIpAddress.go">
-          <provider selected="true" editor-type-id="text-editor">
-            <state>
-              <caret lean-forward="true" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/utils/packet.go">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-2">
-              <caret lean-forward="true" />
+            <state relative-caret-position="34">
+              <caret line="18" column="6" lean-forward="true" selection-start-line="18" selection-start-column="6" selection-end-line="18" selection-end-column="6" />
               <folding>
-                <element signature="e#15#44#0" />
-                <element signature="e#57#110#0" />
-                <element signature="e#348#355#0" />
-                <element signature="e#126#179#0" />
-                <element signature="e#509#516#0" />
-                <element signature="e#537#603#0" />
-                <element signature="e#655#721#0" />
-                <element signature="e#861#868#0" />
                 <element signature="n#!!block;n#CreatePacket#0" />
               </folding>
             </state>
@@ -126,6 +131,7 @@
     <findStrings>
       <find>enc</find>
       <find>peerNode</find>
+      <find>Error establishing a connection</find>
     </findStrings>
   </component>
   <component name="GOROOT" path="C:\Users\mohan\Documents\Software Installations\Go" />
@@ -150,9 +156,12 @@
         <option value="$PROJECT_DIR$/src/cmd/serverBuild/main.go" />
         <option value="$PROJECT_DIR$/src/cmd/clientBuild/main.go" />
         <option value="$PROJECT_DIR$/tests/server_test.go" />
-        <option value="$PROJECT_DIR$/src/server/server.go" />
-        <option value="$PROJECT_DIR$/src/peer/peer.go" />
+        <option value="$PROJECT_DIR$/src/peer/getIpAddress.go" />
         <option value="$PROJECT_DIR$/src/utils/packet.go" />
+        <option value="$PROJECT_DIR$/src/peer/peer.go" />
+        <option value="$PROJECT_DIR$/src/cmd/serverBuild/handler.go" />
+        <option value="$PROJECT_DIR$/src/server/server.go" />
+        <option value="$PROJECT_DIR$/src/server/handler.go" />
       </list>
     </option>
   </component>
@@ -186,6 +195,32 @@
               <item name="serverMultipleClient" type="b2602c69:ProjectViewProjectNode" />
               <item name="serverMultipleClient" type="462c0819:PsiDirectoryNode" />
               <item name="src" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="serverMultipleClient" type="b2602c69:ProjectViewProjectNode" />
+              <item name="serverMultipleClient" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="cmd" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="serverMultipleClient" type="b2602c69:ProjectViewProjectNode" />
+              <item name="serverMultipleClient" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="cmd" type="462c0819:PsiDirectoryNode" />
+              <item name="peerBuild" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="serverMultipleClient" type="b2602c69:ProjectViewProjectNode" />
+              <item name="serverMultipleClient" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="cmd" type="462c0819:PsiDirectoryNode" />
+              <item name="serverBuild" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="serverMultipleClient" type="b2602c69:ProjectViewProjectNode" />
+              <item name="serverMultipleClient" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="server" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="serverMultipleClient" type="b2602c69:ProjectViewProjectNode" />
@@ -232,26 +267,8 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Go Test.server_test.go">
-    <configuration name="go build main.go (1)" type="GoApplicationRunConfiguration" factoryName="Go Application" temporary="true" nameIsGenerated="true">
-      <module name="serverMultipleClient" />
-      <working_directory value="$PROJECT_DIR$/" />
-      <go_parameters value="-i" />
-      <kind value="FILE" />
-      <filePath value="$PROJECT_DIR$/src/cmd/serverBuild/main.go" />
-      <directory value="$PROJECT_DIR$/" />
-      <method v="2" />
-    </configuration>
-    <configuration name="go build main.go (2)" type="GoApplicationRunConfiguration" factoryName="Go Application" temporary="true" nameIsGenerated="true">
-      <module name="serverMultipleClient" />
-      <working_directory value="$PROJECT_DIR$/" />
-      <go_parameters value="-i" />
-      <kind value="FILE" />
-      <filePath value="$PROJECT_DIR$/src/cmd/clientBuild/main.go" />
-      <directory value="$PROJECT_DIR$/" />
-      <method v="2" />
-    </configuration>
-    <configuration name="go build main.go (3)" type="GoApplicationRunConfiguration" factoryName="Go Application" temporary="true" nameIsGenerated="true">
+  <component name="RunManager" selected="Go Build.peer_4">
+    <configuration name="peer_1" type="GoApplicationRunConfiguration" factoryName="Go Application">
       <module name="serverMultipleClient" />
       <working_directory value="$PROJECT_DIR$/" />
       <go_parameters value="-i" />
@@ -260,12 +277,39 @@
       <directory value="$PROJECT_DIR$/" />
       <method v="2" />
     </configuration>
-    <configuration name="go build main.go" type="GoApplicationRunConfiguration" factoryName="Go Application" temporary="true" nameIsGenerated="true">
+    <configuration name="peer_2" type="GoApplicationRunConfiguration" factoryName="Go Application">
       <module name="serverMultipleClient" />
       <working_directory value="$PROJECT_DIR$/" />
       <go_parameters value="-i" />
       <kind value="FILE" />
-      <filePath value="$PROJECT_DIR$/src/cmd/server/main.go" />
+      <filePath value="$PROJECT_DIR$/src/cmd/peerBuild/main.go" />
+      <directory value="$PROJECT_DIR$/" />
+      <method v="2" />
+    </configuration>
+    <configuration name="peer_3" type="GoApplicationRunConfiguration" factoryName="Go Application">
+      <module name="serverMultipleClient" />
+      <working_directory value="$PROJECT_DIR$/" />
+      <go_parameters value="-i" />
+      <kind value="FILE" />
+      <filePath value="$PROJECT_DIR$/src/cmd/peerBuild/main.go" />
+      <directory value="$PROJECT_DIR$/" />
+      <method v="2" />
+    </configuration>
+    <configuration name="peer_4" type="GoApplicationRunConfiguration" factoryName="Go Application">
+      <module name="serverMultipleClient" />
+      <working_directory value="$PROJECT_DIR$/" />
+      <go_parameters value="-i" />
+      <kind value="FILE" />
+      <filePath value="$PROJECT_DIR$/src/cmd/peerBuild/main.go" />
+      <directory value="$PROJECT_DIR$/" />
+      <method v="2" />
+    </configuration>
+    <configuration name="server" type="GoApplicationRunConfiguration" factoryName="Go Application">
+      <module name="serverMultipleClient" />
+      <working_directory value="$PROJECT_DIR$/" />
+      <go_parameters value="-i" />
+      <kind value="FILE" />
+      <filePath value="$PROJECT_DIR$/src/cmd/serverBuild/main.go" />
       <directory value="$PROJECT_DIR$/" />
       <method v="2" />
     </configuration>
@@ -280,19 +324,16 @@
       <method v="2" />
     </configuration>
     <list>
-      <item itemvalue="Go Build.go build main.go" />
-      <item itemvalue="Go Build.go build main.go (1)" />
-      <item itemvalue="Go Build.go build main.go (2)" />
+      <item itemvalue="Go Build.peer_2" />
+      <item itemvalue="Go Build.peer_3" />
+      <item itemvalue="Go Build.peer_4" />
+      <item itemvalue="Go Build.server" />
+      <item itemvalue="Go Build.peer_1" />
       <item itemvalue="Go Test.server_test.go" />
-      <item itemvalue="Go Build.go build main.go (3)" />
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Go Build.go build main.go (3)" />
-        <item itemvalue="Go Build.go build main.go (1)" />
         <item itemvalue="Go Test.server_test.go" />
-        <item itemvalue="Go Build.go build main.go (2)" />
-        <item itemvalue="Go Build.go build main.go" />
       </list>
     </recent_temporary>
   </component>
@@ -332,12 +373,12 @@
     <frame x="-7" y="-7" width="1550" height="838" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" sideWeight="0.49893844" visible="true" weight="0.36442953" />
+      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.49893844" visible="true" weight="0.36442953" />
       <window_info id="Structure" order="1" sideWeight="0.50106156" side_tool="true" weight="0.31543624" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" weight="0.32765958" />
-      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.49932885" visible="true" weight="0.32765958" />
+      <window_info active="true" anchor="bottom" id="Run" order="2" sideWeight="0.49932885" visible="true" weight="0.32765958" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.39858156" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
@@ -362,6 +403,18 @@
     <MESSAGE value="Reformatted server.go to allow testing" />
     <MESSAGE value="Changed project structure to match the go specifications." />
     <option name="LAST_COMMIT_MESSAGE" value="Changed project structure to match the go specifications." />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/src/peer/peer.go</url>
+          <line>274</line>
+          <properties />
+          <option name="timeStamp" value="10" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/src/sample2.go" />
@@ -410,13 +463,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/peer/getIpAddress.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state>
-          <caret lean-forward="true" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/tests/server_test.go">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="306">
@@ -424,15 +470,19 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/server/server.go">
+    <entry file="file://$PROJECT_DIR$/src/peer/getIpAddress.go">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="392">
-          <caret line="125" lean-forward="true" selection-start-line="125" selection-end-line="125" />
+        <state relative-caret-position="51">
+          <caret line="6" selection-start-line="6" selection-end-line="6" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/utils/packet.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="34">
+          <caret line="18" column="6" lean-forward="true" selection-start-line="18" selection-start-column="6" selection-end-line="18" selection-end-column="6" />
           <folding>
-            <element signature="e#2213#2394#0" />
-            <element signature="e#4129#4208#0" />
-            <element signature="e#4260#4375#0" />
-            <element signature="n#!!block;n#StartServer#0" />
+            <element signature="n#!!block;n#CreatePacket#0" />
           </folding>
         </state>
       </provider>
@@ -440,31 +490,48 @@
     <entry file="file://$PROJECT_DIR$/src/peer/peer.go">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="188">
-          <caret line="106" column="5" selection-start-line="106" selection-start-column="5" selection-end-line="106" selection-end-column="5" />
+          <caret line="296" column="45" selection-start-line="296" selection-start-column="45" selection-end-line="296" selection-end-column="45" />
           <folding>
             <element signature="e#14#116#0" expanded="true" />
+            <element signature="n#!!block;n#Start#0" />
+            <element signature="e#711#835#0" />
             <element signature="e#1406#1509#0" />
             <element signature="e#2786#2892#0" />
             <element signature="n#!!block;n#sendMessage#0" />
-            <element signature="n#!!block;n#listenAndAccept#0" />
+            <element signature="e#3477#3555#0" />
+            <element signature="e#4630#4637#0" />
+            <element signature="e#5257#5264#0" />
+            <element signature="e#4948#5020#0" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/utils/packet.go">
+    <entry file="file://$PROJECT_DIR$/src/cmd/serverBuild/handler.go">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-2">
-          <caret lean-forward="true" />
+        <state>
+          <caret column="14" selection-start-column="14" selection-end-column="14" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/server/server.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="238">
+          <caret line="21" lean-forward="true" selection-start-line="21" selection-end-line="21" />
           <folding>
-            <element signature="e#15#44#0" />
-            <element signature="e#57#110#0" />
-            <element signature="e#348#355#0" />
-            <element signature="e#126#179#0" />
-            <element signature="e#509#516#0" />
-            <element signature="e#537#603#0" />
-            <element signature="e#655#721#0" />
-            <element signature="e#861#868#0" />
-            <element signature="n#!!block;n#CreatePacket#0" />
+            <element signature="n#!!block;n#initializeMaster#0" />
+            <element signature="n#!!block;n#acceptAndProcess#0" />
+            <element signature="n#!!block;n#StartServer#0" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/server/handler.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="256">
+          <caret line="60" column="8" lean-forward="true" selection-start-line="60" selection-start-column="8" selection-end-line="60" selection-end-column="8" />
+          <folding>
+            <element signature="e#16#71#0" expanded="true" />
+            <element signature="n#!!block;n#handleConnection#0" />
           </folding>
         </state>
       </provider>

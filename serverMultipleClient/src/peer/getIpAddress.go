@@ -5,17 +5,6 @@ import (
 	"net"
 )
 
-//
-//func main() {
-//
-//	ip, err := ExternalIP()
-//	if err != nil {
-//		fmt.Println(err)
-//	}
-//	fmt.Println(ip)
-//
-//}
-
 //Returns the IP Address of the system
 func ExternalIP() (string, error) {
 	ifaces, err := net.Interfaces()
