@@ -4,11 +4,11 @@ import (
 	"flag"
 	"net"
 	"fmt"
-	"strings"
-	"strconv"
+		"strconv"
 		"encoding/gob"
 	"utils"
 	"sync"
+	"strings"
 )
 
 //global variable declaration
@@ -17,7 +17,7 @@ type master struct{
 	port int
 	networkAddr string
 	peers map[string]int
-	backupPeers map[string]string
+	backupPeers map[string]int
 }
 
 var masterNode master
@@ -128,42 +128,74 @@ func handleConnection(conn net.Conn){
 
 	//parse the packet
 	if recv.Ptype == utils.PEER{
-
-		//debug
-		n := len(masterNode.peers)
-
-		//get the address of the tcp-peerBuild
-		clientAddr := conn.RemoteAddr().String()
-
-		//add the peerBuild to the peer list
-		networkAddr := strings.Split(clientAddr, ":")
-		clientPort, err := strconv.Atoi(networkAddr[1])
-		if err != nil{
-			fmt.Printf("Conversion Error: %s", err.Error())
-		}
-
-
-		mutex.Lock()
-		//masterNode.peers[networkAddr[0]] = clientPort
-		masterNode.peers[clientAddr] = clientPort
-		mutex.Unlock()
-
-		//send response packet
-		p := utils.Response{Ptype: utils.RESPONSE,Backup:false,NetAddress:""}
-		err = enc.Encode(p)
-		if err!= nil{
-			print("Error while encoding peer packet: ", err.Error())
-		}
-
-		if n!= len(masterNode.peers){
-			fmt.Println("Peer added")
-		}
+		validatePeer(conn, recv)
 	}
 
 	//close the connection
 	conn.Close()
 }
 
+/*
+Function which handles the incoming request
+from a peer
+ */
+func validatePeer(conn net.Conn, recv utils.Packet){
+	//debug
+	n := len(masterNode.peers)
+	b_n := len(masterNode.backupPeers)
+
+	//get the address of the tcp-peerBuild
+	clientAddr := conn.RemoteAddr().String()
+
+	//add the peerBuild to the peer list
+	networkAddr := strings.Split(clientAddr, ":")
+	clientPort, err := strconv.Atoi(networkAddr[1])
+	if err != nil{
+		fmt.Printf("Conversion Error: %s", err.Error())
+	}
+
+	//if every peer registered has a backup
+	if n==b_n {
+		mutex.Lock()
+		//masterNode.peers[networkAddr[0]] = clientPort
+		masterNode.peers[clientAddr] = clientPort
+		mutex.Unlock()
+
+		//send response packet
+		p := utils.Response{Ptype: utils.RESPONSE, Backup: false, NetAddress: ""}
+		err = enc.Encode(p)
+		if err != nil {
+			print("Error while encoding peer packet: ", err.Error())
+		}
+
+		//check if the peer has been added
+		if n != len(masterNode.peers) {
+			fmt.Println("Peer added")
+		} else {
+			fmt.Println("Peer registration unsuccessful.")
+		}
+	} else if n > b_n{ //when the recently added peer does
+						//not have a backup
+		mutex.Lock()
+		//masterNode.peers[networkAddr[0]] = clientPort
+		masterNode.backupPeers[clientAddr] = clientPort
+		mutex.Unlock()
+
+		//send response packet
+		p := utils.Response{Ptype: utils.RESPONSE, Backup: true, NetAddress: ""}
+		err = enc.Encode(p)
+		if err != nil {
+			print("Error while encoding peer packet: ", err.Error())
+		}
+
+		//check if the peer has been added
+		if n != len(masterNode.peers) {
+			fmt.Println("Peer added")
+		} else {
+			fmt.Println("Peer registration unsuccessful.")
+		}
+	}
+}
 /*
 Function which returns the address of master struct
 for testing functions

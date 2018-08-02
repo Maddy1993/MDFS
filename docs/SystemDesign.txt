@@ -8,7 +8,13 @@ Server:
   2. Store, Search and Read a file requests from the client.
   3. Stores the mapped structure of File Object Values to Client addresses.
   4. Disconnects the connection between the peer after establishing its location within the decentralized network
-  5. Knows the backup server for each peer in the network
+  5. Elects the backup server for each peer based on the pre-defined quoram values.
+
+Electing a peer:
+  1. For every single peer, there should exist a backup peer.
+  2. When a request is made the peer, the master would check if a backup peer is needed for the
+  recently added peer. If so, it will make the current peer the backup to the recently added peer
+  3. If not, it would send a signal to requesting peer that it has been successfully registered with the master
 
   Peer:
     1. Peer is designed to have a finger table or hash table which stores the address of the clients associated with the file chunks(if they are split)
