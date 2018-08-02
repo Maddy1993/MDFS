@@ -4,7 +4,7 @@ import (
 	"testing"
 	"server"
 	"time"
-	"client"
+	"peer"
 )
 
 func TestServer(t *testing.T)  {
@@ -21,5 +21,5 @@ func serverTest1(t *testing.T)  {
 
 	time.Sleep(time.Second * 30)
 
-	go client.Start()
+	peer.Start()
 }

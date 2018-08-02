@@ -6,6 +6,9 @@ import (
 	"fmt"
 	"strings"
 	"strconv"
+		"encoding/gob"
+	"utils"
+	"sync"
 )
 
 //global variable declaration
@@ -18,6 +21,9 @@ type master struct{
 }
 
 var masterNode master
+var enc *gob.Encoder
+var dec *gob.Decoder
+var mutex = &sync.Mutex{}
 
 func main()  {
 
@@ -75,7 +81,7 @@ func acceptAndProcess(node master){
 	}
 
 	//until a SIGNAL interrupt is passed or an exception is
-	//raised, keep on accepting clientBuild connections and add it
+	//raised, keep on accepting peerBuild connections and add it
 	//to the peer map.
 	for{
 
@@ -89,6 +95,12 @@ func acceptAndProcess(node master){
 			continue
 		}
 
+		// Will write to network.
+		enc = gob.NewEncoder(conn)
+		// Will read from network.
+		dec = gob.NewDecoder(conn)
+
+
 		//start a go routine to handle
 		//the incoming connections
 		go handleConnection(conn)
@@ -98,46 +110,57 @@ func acceptAndProcess(node master){
 
 /*
 Function which handles the incoming
-clientBuild requests to the serverBuild.
+peerBuild requests to the serverBuild.
 It performs any necessary action and/or invokes
 other functions to complete the tasks
 
 Returns: nil
  */
 func handleConnection(conn net.Conn){
-	//get the address of the tcp-clientBuild
-	clientAddr := conn.RemoteAddr().String()
 
-	//add the clientBuild to the peer list
-	networkAddr := strings.Split(clientAddr, ":")
-	clientPort, err := strconv.Atoi(networkAddr[1])
-	if err != nil{
-		fmt.Printf("COnversion Error: %s", err.Error())
+	//Receive and Decode the packet on the
+	//network.
+	var recv utils.Packet
+	err := dec.Decode(&recv)
+	if err!= nil{
+		print("Error while decoding peer packet: ", err.Error())
 	}
 
-	//masterNode.peers[networkAddr[0]] = clientPort
-	masterNode.peers[clientAddr] = clientPort
+	//parse the packet
+	if recv.Ptype == utils.PEER{
 
-	//debug information
-	fmt.Println("Connected Client: " + clientAddr)
+		//debug
+		n := len(masterNode.peers)
 
-	info := make([]byte, 255)
-	n, err := conn.Read(info)
+		//get the address of the tcp-peerBuild
+		clientAddr := conn.RemoteAddr().String()
 
-	fmt.Printf("size of text read %d\n", n)
+		//add the peerBuild to the peer list
+		networkAddr := strings.Split(clientAddr, ":")
+		clientPort, err := strconv.Atoi(networkAddr[1])
+		if err != nil{
+			fmt.Printf("Conversion Error: %s", err.Error())
+		}
 
-	if err != nil{
-		fmt.Println("Error Reading message from Client")
-	} else {
-		fmt.Println("Message Received from Client: " + string(info))
+
+		mutex.Lock()
+		//masterNode.peers[networkAddr[0]] = clientPort
+		masterNode.peers[clientAddr] = clientPort
+		mutex.Unlock()
+
+		//send response packet
+		p := utils.Response{Ptype: utils.RESPONSE,Backup:false,NetAddress:""}
+		err = enc.Encode(p)
+		if err!= nil{
+			print("Error while encoding peer packet: ", err.Error())
+		}
+
+		if n!= len(masterNode.peers){
+			fmt.Println("Peer added")
+		}
 	}
 
-	temp := strings.Split(string(info), " ")
-
-	if temp[0] == "Hello"{
-		conn.Write([]byte("Hello " + string(clientAddr)))
-	}
-
+	//close the connection
 	conn.Close()
 }
 
