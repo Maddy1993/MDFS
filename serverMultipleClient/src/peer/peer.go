@@ -3,9 +3,7 @@ package peer
 import (
 	"net"
 	"fmt"
-	"bufio"
-	"os"
-	"flag"
+			"flag"
 	"strconv"
 	"utils"
 	"unsafe"
@@ -29,6 +27,7 @@ type peer struct{
 var peerNode peer
 var enc *gob.Encoder
 var dec *gob.Decoder
+var index map[string]bool
 
 ////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////
@@ -141,44 +140,6 @@ func establishConnection() {
 }
 
 /*
-Function which is responsible for communication
-with the serverBuild
-
-Params: net.Conn
-Returns: nil
- */
-func sendMessage(conn net.Conn){
-
-	var message string
-	var msgSent []byte
-	msgSent = make([]byte, 255)
-
-	//Take the input from the peerBuild
-	fmt.Printf("Enter the Message to send to the peerBuild: ")
-	scanner := bufio.NewScanner(os.Stdin)
-	scanner.Scan()
-	message = scanner.Text()
-
-	//Send the message
-	msgSent = []byte(message+"\n")
-	n, err:= conn.Write(msgSent)
-	if err != nil{
-		fmt.Printf("Error while writing message to socket")
-	}
-
-	//Read the message
-	var msg []byte
-	msg = make([]byte, 255)
-	n, err1 := conn.Read(msg)
-	if err1 != nil{
-		fmt.Printf("Error while reading mmessage from the remote %s", err1.Error())
-	} else {
-		fmt.Printf("text size is:  %d\n", n)
-		fmt.Println("Message from Server: " + string(msg))
-	}
-}
-
-/*
 Function which listens to incoming requests from
 clients for file access
 */
@@ -236,7 +197,10 @@ func handleConnection(conn net.Conn){
 		defer conn.Close()
 		updateBackupPeer(enc, recv.Pcontent)
 		fmt.Println("Backup Peer updated")
-		break
+	case utils.STORE:
+		defer conn.Close()
+		storeAndIndexFile(enc, recv.Pcontent)
+		fmt.Println("Store request handled")
 	}
 }
 
