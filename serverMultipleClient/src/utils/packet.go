@@ -1,5 +1,7 @@
 package utils
 
+import "os"
+
 //global variable declaration
 //Usage:
 //Peer:
@@ -17,6 +19,7 @@ package utils
 
 type Packet struct {
 	Ptype int
+	PfileInfo os.FileInfo
 	Pcontent string
 	Psize uintptr
 }
