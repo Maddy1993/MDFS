@@ -60,7 +60,9 @@ const (
 	STORE    = 3
 	BACKUP   = 4
 	RESPONSE = 5
-	UPDATE   = 6
+	UPDATE = 6
+	DATA = 7
+	DATA_END = 8
 )
 
 /*

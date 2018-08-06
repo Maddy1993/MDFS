@@ -9,6 +9,8 @@ import (
 	"strings"
 	"unsafe"
 	"utils"
+	"os"
+	"log"
 )
 
 ////////////////////////////////////////////////////////////
@@ -24,10 +26,12 @@ type peer struct {
 }
 
 //Global variables
-var peerNode peer
-var enc *gob.Encoder
-var dec *gob.Decoder
-var index map[string]bool
+var (
+	peerNode peer
+	enc *gob.Encoder
+	dec *gob.Decoder
+	index map[string]bool
+)
 
 ////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////
@@ -201,7 +205,7 @@ func handleConnection(conn net.Conn) {
 		fmt.Println("Backup Peer updated")
 	case utils.STORE:
 		defer conn.Close()
-		//storeAndIndexFile(enc, recv.Pcontent)
+		storeAndIndexFile(enc, dec, recv.PfileInfo)
 		fmt.Println("Store request handled")
 	}
 }
@@ -274,4 +278,111 @@ func updatePrimary() {
 		}
 	}
 
+
+}
+
+/*
+Responsible for maintaining and storing the
+file on the disk and as well as the index map
+associated with the peer.
+
+Params:
+	enc: gob.Encoder
+			Variable is bound to the network
+			connection it is defined. Responsible
+			for writing a byte stream to the
+			network io writer.
+	dec: gob.Decoder
+			Variable is bound to the network
+			connection it is defined. Responsible
+			for reading a byte stream from the
+			network io reader. It stores the received
+			byte stream in variable of type Utils.Packet
+	fileinfo: os.FileInfo
+			Variable which stores the FileInfo stats
+			sent by the client.
+
+Returns: Nil
+ */
+func storeAndIndexFile(enc *gob.Encoder, dec *gob.Decoder, fileinfo os.FileInfo)  {
+
+	/*check if file exists in peer file
+	registry*/
+	//get the file name
+	fName := fileinfo.Name()
+
+	//verify if there exists a registry for the
+	//peer
+	if index == nil{
+		//if a registry doesn't exists
+		//create a registry of type map[string]bool
+		//and add the file to the registry
+		index = map[string]bool{
+			fName: false,
+		}
+	} else{
+		//if a registry exists, check if a file
+		//exists
+		_, ok:= index[fName]
+		var file *os.File
+		var err error
+		if ok{
+			//if the file exists
+			file, err = os.OpenFile(fName+"_temp", os.O_WRONLY, 0755)
+			validateError(err)
+		} else{
+			//if the file does not exist
+			file, err = os.OpenFile(fName, os.O_CREATE|os.O_WRONLY, 0755)
+			validateError(err)
+		}
+
+
+		//send an acknowledgment that peer is ready to
+		// read and read whenever there is a data
+		// from the network and write to the
+		//file as long as the data packet is valid
+		var pack utils.Packet
+		pack.Ptype = utils.RESPONSE
+		err = enc.Encode(pack)
+		validateError(err)
+
+		//until the packet type is
+		//utils.DATA_END
+		for{
+			err := dec.Decode(&pack)
+			validateError(err)
+
+			//check the packet type
+			if pack.Ptype == utils.DATA{
+				_, err := file.Write([]byte(pack.Pcontent))
+				validateError(err)
+			} else if pack.Ptype == utils.DATA_END{
+				_, err := file.Write([]byte(pack.Pcontent))
+				validateError(err)
+
+				file.Close()
+				break
+			}
+		}
+
+		//if its temporary file, delete the original
+		//and the make the temporary copy the final copy
+		if ok{
+			err = os.Rename(fName, file.Name())
+			validateError(err)
+		}
+	}
+}
+
+/*
+Responsible for writing the err response
+to the log.
+
+Params:
+	err: Error
+ */
+func validateError(err error)  {
+	if err != nil{
+		log.Fatal(err)
+	}
 }
