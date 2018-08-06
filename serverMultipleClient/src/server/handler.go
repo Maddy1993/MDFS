@@ -1,11 +1,12 @@
 package server
 
 import (
-	"net"
-	"utils"
-	"strings"
-	"strconv"
+	"encoding/gob"
 	"fmt"
+	"net"
+	"strconv"
+	"strings"
+	"utils"
 )
 
 /*
@@ -15,20 +16,42 @@ It performs any necessary action and/or invokes
 other functions to complete the tasks
 
 Returns: nil
- */
-func handleConnection(conn net.Conn){
+*/
+func handleConnection(conn net.Conn) {
 
 	//Receive and Decode the packet on the
 	//network.
 	var recv utils.Packet
 	err := dec.Decode(&recv)
-	if err!= nil{
+	if err != nil {
 		print("Error while decoding peer packet: ", err.Error())
 	}
 
 	//parse the packet
-	if recv.Ptype == utils.PEER{
+	if recv.Ptype == utils.PEER {
 		validatePeer(conn, recv)
+	}
+
+	if recv.Ptype == utils.STORE {
+		//var response utils.ClientResponse
+		// TODO: selecting the peers according to hash
+		fmt.Println("Sending Response to Client, content:", recv.Pcontent)
+		var primary, backup string
+		for ip, _ := range masterNode.peers {
+			primary = ip
+			//fmt.Printf("IP: %s, Port: %d", ip, port)
+		}
+
+		for primary_peer, backup_peer := range masterNode.backupPeers {
+			if primary == primary_peer {
+				backup = backup_peer
+			}
+		}
+
+		response := utils.CreateClientResponse(utils.RESPONSE, primary, backup)
+		enc = gob.NewEncoder(conn)
+		err := enc.Encode(response)
+		utils.Check(err)
 	}
 
 	//close the connection
@@ -38,8 +61,8 @@ func handleConnection(conn net.Conn){
 /*
 Function which handles the incoming request
 from a peer
- */
-func validatePeer(conn net.Conn, recv utils.Packet){
+*/
+func validatePeer(conn net.Conn, recv utils.Packet) {
 	//debug
 	n := len(masterNode.peers)
 	b_n := len(masterNode.backupPeers)
@@ -50,17 +73,17 @@ func validatePeer(conn net.Conn, recv utils.Packet){
 	//add the peerBuild to the peer list
 	networkAddr := strings.Split(clientAddr, ":")
 	clientPort, err := strconv.Atoi(networkAddr[1])
-	if err != nil{
+	if err != nil {
 		fmt.Printf("Conversion Error: %s", err.Error())
 	}
 
 	//if every peer registered has a backup
-	if n==b_n {
+	if n == b_n {
 		mutex.Lock()
 		_, ok := masterNode.peers[clientAddr]
 		if !ok {
 			masterNode.peers[clientAddr] = clientPort
-		} else{
+		} else {
 			fmt.Println("Peer already registered. If the peer needs to update " +
 				"the details, send an UPDATE message to the master")
 		}
@@ -80,7 +103,7 @@ func validatePeer(conn net.Conn, recv utils.Packet){
 		} else {
 			fmt.Println("Peer registration unsuccessful.")
 		}
-	} else if n > b_n{ //when the recently added peer does
+	} else if n > b_n { //when the recently added peer does
 		//not have a backup
 		mutex.Lock()
 		//masterNode.peers[clientAddr] = clientPort
@@ -102,4 +125,3 @@ func validatePeer(conn net.Conn, recv utils.Packet){
 		}
 	}
 }
-

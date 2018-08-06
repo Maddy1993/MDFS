@@ -1,9 +1,13 @@
 package client
 
 import (
+	"bufio"
 	"encoding/gob"
 	"flag"
+	"fmt"
+	"io/ioutil"
 	"net"
+	"os"
 	"strconv"
 	"strings"
 	"unsafe"
@@ -23,15 +27,20 @@ var clientNode client
 var encode *gob.Encoder
 var decode *gob.Decoder
 
-// error check
-func check(e error) {
-	if e != nil {
-		panic(e)
-	}
+func Start() {
+	reader := bufio.NewReader(os.Stdin)
+	fmt.Printf("Enter file_name: \n")
+	file_name, err := reader.ReadString('\n')
+	utils.Check(err)
+	file_name = strings.TrimSuffix(file_name, "\n")
+	//fmt.Printf(file_name)
+
+	initializeClient(file_name)
+
 }
 
 // init the client
-func initializeClient() {
+func initializeClient(file_name string) {
 	//parse the command line arguments
 	remoteAddr := flag.String("addr", "127.0.0.1", "The address of the Master to connect to."+
 		"Default is localhost")
@@ -43,28 +52,52 @@ func initializeClient() {
 	//form the network address for the node
 	address := *remoteAddr + ":" + *remotePort
 	clientNode = client{masterNode: address}
+
+	establishConnection(file_name)
 }
 
 func sendPacket(conn net.Conn, packet utils.Packet) {
-	encode := gob.NewEncoder(conn)
+	//gob.Register(os.FileInfo)
+	encode = gob.NewEncoder(conn)
 	err := encode.Encode(packet)
-	check(err)
+	utils.Check(err)
 }
 
-func establishConnection() {
+func establishConnection(file_name string) {
 	conn, err := net.Dial("tcp", clientNode.masterNode)
-	check(err)
+	utils.Check(err)
 	networkAddr := conn.LocalAddr().String()
 	addr := strings.Split(networkAddr, ":")
 	clientNode.address = addr[0]
 	clientNode.port, err = strconv.Atoi(addr[1])
-	check(err)
-
-	packet := utils.CreatePacket(utils.STORE, "", unsafe.Sizeof(utils.STORE))
+	utils.Check(err)
+	total_size := unsafe.Sizeof(utils.STORE) + unsafe.Sizeof(string(file_name))
+	packet := utils.CreatePacket(utils.STORE, string(file_name), total_size)
+	//fileInfo, err := os.Stat(file_name)
+	//utils.Check(err)
+	//packet.PfileInfo = fileInfo
 	sendPacket(conn, packet)
-	decode := gob.NewDecoder(conn)
+	decode = gob.NewDecoder(conn)
 
-	var response utils.Response
-	err = decode.Decode(conn)
-	check(err)
+	var response utils.ClientResponse
+	err = decode.Decode(&response)
+	utils.Check(err)
+
+	if response.Ptype == utils.RESPONSE {
+		fmt.Printf("Primary %s, Secondary %s", response.PrimaryNetAddr, response.BackupNetAddr)
+		clientNode.myPrimaryPeer = response.PrimaryNetAddr
+		clientNode.backupPeer = response.BackupNetAddr
+	}
+	conn.Close()
+	sendDataToPeer(file_name)
+}
+
+func sendDataToPeer(file_name string) {
+	file_data, err := ioutil.ReadFile(file_name)
+	utils.Check(err)
+	conn, err := net.Dial("tcp", clientNode.myPrimaryPeer)
+	utils.Check(err)
+	total_size := unsafe.Sizeof(utils.STORE) + unsafe.Sizeof(string(file_data))
+	packet := utils.CreatePacket(utils.STORE, string(file_data), total_size)
+	sendPacket(conn, packet)
 }

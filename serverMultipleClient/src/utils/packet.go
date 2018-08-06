@@ -18,12 +18,11 @@ import "os"
 //	Psize:""/chunk size
 
 type Packet struct {
-	Ptype int
+	Ptype     int
 	PfileInfo os.FileInfo
-	Pcontent string
-	Psize uintptr
+	Pcontent  string
+	Psize     uintptr
 }
-
 
 /*
 Usage:
@@ -31,10 +30,10 @@ Usage:
 		Ptype: Reponse
 		Backup: True/False
 		NetAddress: Backup peer addr
- */
+*/
 type Response struct {
-	Ptype int
-	Backup bool
+	Ptype      int
+	Backup     bool
 	NetAddress string
 }
 
@@ -46,23 +45,22 @@ Usage:
 						 address
 		BackupNetAddr: Backup Peer Network
 						address
- */
-type clientResponse struct {
-	Ptype int
+*/
+type ClientResponse struct {
+	Ptype          int
 	PrimaryNetAddr string
-	BackupNetAddr string
+	BackupNetAddr  string
 }
-
 
 //constants which identify the
 //the packet type
-const(
-	PEER = 1
-	FETCH = 2
-	STORE = 3
-	BACKUP = 4
+const (
+	PEER     = 1
+	FETCH    = 2
+	STORE    = 3
+	BACKUP   = 4
 	RESPONSE = 5
-	UPDATE = 6
+	UPDATE   = 6
 )
 
 /*
@@ -79,10 +77,10 @@ Params:
 	p_size: size of the packet
 
 Returns: Instance of packet struct
- */
+*/
 func CreatePacket(p_type int, content string, p_size uintptr) Packet {
 	//create a packet with defined parameters
-	packet_t := Packet{Ptype:p_type, Pcontent:content, Psize:p_size}
+	packet_t := Packet{Ptype: p_type, Pcontent: content, Psize: p_size}
 
 	//return the created packet
 	return packet_t
@@ -102,9 +100,19 @@ Params:
 	p_size: size of the packet
 
 Returns: Instance of packet struct
- */
+*/
 func CreateResponse(p_type int, backup bool, parent string) Response {
 	//create a packet with defined parameters
 	//and return the created packet
-	return Response{Ptype:p_type, Backup:backup, NetAddress:parent}
+	return Response{Ptype: p_type, Backup: backup, NetAddress: parent}
+}
+
+func CreateClientResponse(p_type int, primary string, backup string) ClientResponse {
+	return ClientResponse{Ptype: p_type, PrimaryNetAddr: primary, BackupNetAddr: backup}
+}
+
+func Check(e error) {
+	if e != nil {
+		panic(e)
+	}
 }

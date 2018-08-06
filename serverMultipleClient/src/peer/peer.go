@@ -1,26 +1,26 @@
 package peer
 
 import (
-	"net"
-	"fmt"
-			"flag"
-	"strconv"
-	"utils"
-	"unsafe"
 	"encoding/gob"
+	"flag"
+	"fmt"
+	"net"
+	"strconv"
 	"strings"
+	"unsafe"
+	"utils"
 )
 
 ////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////
 //global variable declaration
-type peer struct{
-	address string
-	port int
-	networkAddr string
+type peer struct {
+	address       string
+	port          int
+	networkAddr   string
 	myPrimaryPeer string
-	backupPeer string
-	masterNode string
+	backupPeer    string
+	masterNode    string
 }
 
 //Global variables
@@ -34,8 +34,8 @@ var index map[string]bool
 
 /*
 Driver Program
- */
-func Start()  {
+*/
+func Start() {
 
 	//Start the peerBuild
 	initializePeer()
@@ -47,11 +47,11 @@ Function which initializes the  peer struct with initial
 values which are parsed from the command line.
 
 Returns: nil
- */
-func initializePeer(){
+*/
+func initializePeer() {
 
 	//parse the command line arguments
-	remoteAddr := flag.String("addr", "127.0.0.1", "The address of the serverBuild to connect to." +
+	remoteAddr := flag.String("addr", "127.0.0.1", "The address of the serverBuild to connect to."+
 		"Default is localhost")
 
 	remotePort := flag.String("port", "9999", "Port to listen for incoming connections.")
@@ -59,16 +59,16 @@ func initializePeer(){
 	flag.Parse()
 
 	//form the network address for the node
-	address := *remoteAddr+":"+*remotePort
+	address := *remoteAddr + ":" + *remotePort
 
 	//initialize the global variable
 	//representing master node
 	_, err := strconv.Atoi(*remotePort)
-	if err != nil{
+	if err != nil {
 		fmt.Printf("Conversion Error: %s", err.Error())
 	}
 
-	peerNode = peer{masterNode:address}
+	peerNode = peer{masterNode: address}
 
 	//Connect to serverBuild
 	//establishConnection(enc, dec)
@@ -86,8 +86,8 @@ func establishConnection() {
 
 	//Dial the connection to the serverBuild
 	//conn, err :=net.Dial("tcp", peerNode.masterNode)
-	conn, err :=net.Dial("tcp", peerNode.masterNode)
-	if err != nil{
+	conn, err := net.Dial("tcp", peerNode.masterNode)
+	if err != nil {
 		fmt.Printf("Error establishing a connection\n")
 		return
 	}
@@ -96,10 +96,10 @@ func establishConnection() {
 	peerNode.networkAddr = conn.LocalAddr().String()
 	a := strings.Split(peerNode.networkAddr, ":")
 	peerNode.address = a[0]
-	peerNode.port,_ = strconv.Atoi(a[1])
+	peerNode.port, _ = strconv.Atoi(a[1])
 
 	//create packet to send to the master
-	p := utils.CreatePacket(utils.PEER,"", unsafe.Sizeof(utils.PEER))
+	p := utils.CreatePacket(utils.PEER, "", unsafe.Sizeof(utils.PEER))
 
 	//send message to the master
 	//initialize the encoder and decoder
@@ -109,20 +109,20 @@ func establishConnection() {
 
 	//Encode and send data over network
 	err = enc.Encode(p)
-	if err!= nil{
+	if err != nil {
 		print("Error while encoding peer packet: ", err.Error())
 	}
 
 	//Receive and decode data on the network
 	var resp utils.Response
 	err = dec.Decode(&resp)
-	if err!= nil{
+	if err != nil {
 		print("Error while decoding peer packet: ", err.Error())
 	}
 
 	//process the response packet
-	if resp.Ptype == utils.RESPONSE{
-		if resp.Backup{
+	if resp.Ptype == utils.RESPONSE {
+		if resp.Backup {
 			//update the primary peer
 			//address to the current instance
 			peerNode.myPrimaryPeer = resp.NetAddress
@@ -131,7 +131,9 @@ func establishConnection() {
 			//primary peer
 			defer fmt.Println("Primary Peer Updated")
 			go updatePrimary()
-		} else{peerNode.myPrimaryPeer = ""}
+		} else {
+			peerNode.myPrimaryPeer = ""
+		}
 	}
 
 	conn.Close()
@@ -143,10 +145,10 @@ func establishConnection() {
 Function which listens to incoming requests from
 clients for file access
 */
-func listenAndAccept(){
+func listenAndAccept() {
 	//listen on the designates network address
 	adapter, err := net.Listen("tcp", peerNode.networkAddr)
-	if err != nil{
+	if err != nil {
 		fmt.Printf("Error while listening to the on port: %d", peerNode.port)
 		return
 	}
@@ -154,7 +156,7 @@ func listenAndAccept(){
 	//until a SIGNAL interrupt is passed or an exception is
 	//raised, keep on accepting peerBuild connections and add it
 	//to the peer map.
-	for{
+	for {
 
 		//debug information
 		fmt.Printf("\nListening on Port: %d\n", peerNode.port)
@@ -177,8 +179,8 @@ Function which handles the incoming requests
 to the peer
 Params: net.Conn
 Returns: Nil
- */
-func handleConnection(conn net.Conn){
+*/
+func handleConnection(conn net.Conn) {
 	// Will write to network.
 	enc = gob.NewEncoder(conn)
 	// Will read from network.
@@ -187,7 +189,7 @@ func handleConnection(conn net.Conn){
 	//read and decode the packet sent
 	var recv utils.Packet
 	err := dec.Decode(&recv)
-	if err != nil{
+	if err != nil {
 		fmt.Println("Error Decoding the incoming packet of the peer: ", err.Error())
 	}
 
@@ -199,7 +201,7 @@ func handleConnection(conn net.Conn){
 		fmt.Println("Backup Peer updated")
 	case utils.STORE:
 		defer conn.Close()
-		storeAndIndexFile(enc, recv.Pcontent)
+		//storeAndIndexFile(enc, recv.Pcontent)
 		fmt.Println("Store request handled")
 	}
 }
@@ -214,8 +216,8 @@ Params:
     content: the content received in the packet
 			  sent by sender
 Returns: Nil
- */
-func updateBackupPeer(encB *gob.Encoder, content string)  {
+*/
+func updateBackupPeer(encB *gob.Encoder, content string) {
 	//update the backup peer in the
 	//current instance
 	peerNode.backupPeer = content
@@ -224,8 +226,8 @@ func updateBackupPeer(encB *gob.Encoder, content string)  {
 	//peer
 	pkt := utils.CreatePacket(utils.RESPONSE, "", 0)
 	err := encB.Encode(pkt)
-	if err != nil{
-		fmt.Println("Error while encoding response packet to the" +
+	if err != nil {
+		fmt.Println("Error while encoding response packet to the"+
 			"backup peer: ", err.Error())
 	}
 }
@@ -233,12 +235,12 @@ func updateBackupPeer(encB *gob.Encoder, content string)  {
 /*
 Function which updates the primary
 peer about its new backup peer
- */
-func updatePrimary()  {
+*/
+func updatePrimary() {
 
 	//Dial the connection to the serverBuild
-	conn, err :=net.Dial("tcp", peerNode.myPrimaryPeer)
-	if err != nil{
+	conn, err := net.Dial("tcp", peerNode.myPrimaryPeer)
+	if err != nil {
 		fmt.Printf("Error establishing a connection to the primary peer\n")
 		return
 	}
@@ -250,27 +252,26 @@ func updatePrimary()  {
 	for {
 		pkt := utils.CreatePacket(utils.UPDATE, peerNode.networkAddr, 0)
 		err = enc_1.Encode(pkt)
-		if err != nil{
+		if err != nil {
 			fmt.Println("Error encoding the update packet: ", err.Error())
 		}
 
 		//receive and decode the packet from the
 		//primary peer for all ok status
 		err = dec_1.Decode(&pkt)
-		if err != nil{
+		if err != nil {
 			fmt.Println("Error decoding the response packet: ", err.Error())
 		}
 
 		//If the received packet type
 		//is not a response, consider the
 		//primary peer update has failed
-		if pkt.Ptype != utils.RESPONSE{
+		if pkt.Ptype != utils.RESPONSE {
 			fmt.Println("Primary Peer status update unsuccessful")
-		} else{
+		} else {
 			conn.Close()
 			break
 		}
 	}
-
 
 }
