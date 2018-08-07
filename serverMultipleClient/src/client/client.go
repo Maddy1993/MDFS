@@ -115,17 +115,9 @@ func processAndValidate(command string){
 	case "send":
 		conn := establishConnection()
 
-		//create a struct for the file
-		f, err := os.Stat(filepath.Join(dirPath,tokens[1]))
-		utils.ValidateError(err)
-
-		fileV := utils.File{
-			Name:f.Name(),
-			Size:f.Size(),
-		}
+		fileV := MakeFileStruct(tokens[1], dirPath, "")
 
 		println("Received primary details")
-		println(fileV.Name)
 		defer conn.Close()
 		sendFile(conn, fileV)
 		break
@@ -171,6 +163,7 @@ func establishConnection() (conn net.Conn){
 //Returns: nil
 func sendFile(conn net.Conn, fileV utils.File)  {
 	var err error
+
 	//create the packet to send to the server
 	totalSize := unsafe.Sizeof(utils.STORE) + unsafe.Sizeof(string(fileV.Name))
 	packet := utils.CreatePacket(utils.STORE, string(fileV.Name), totalSize)
@@ -252,4 +245,24 @@ func sendData(fileV utils.File) {
 		err = encode.Encode(packet)
 		utils.ValidateError(err)
 	}
+}
+
+//Function which takes the token as input
+//and returns a file struct as output.
+//Params:
+//	@fileName: string
+//		A variable which holds the value of
+//		file name processed from the command
+//Returns: fileV utils.File
+func MakeFileStruct(fileName string, d string, suffix string) (fileV utils.File)  {
+	//create a struct for the file
+	f, err := os.Stat(filepath.Join(d,suffix+fileName))
+	utils.ValidateError(err)
+
+	fileV = utils.File{
+		Name:f.Name(),
+		Size:f.Size(),
+	}
+
+	return
 }

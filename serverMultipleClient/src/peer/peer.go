@@ -10,7 +10,7 @@ import (
 	"utils"
 	"os"
 	"path/filepath"
-)
+	)
 
 ////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////
@@ -22,6 +22,7 @@ type peer struct {
 	myPrimaryPeer string
 	backupPeer    string
 	masterNode    string
+	backup		   bool
 }
 
 //Global variables
@@ -65,12 +66,7 @@ func initializePeer(remoteAddr string, remotePort string) {
 		fmt.Printf("Conversion Error: %s", err.Error())
 	}
 
-	peerNode = peer{masterNode: address}
-
-	//initialize the directory where the incoming
-	//files needs to be stored
-	//dirPath = filepath.Join(basePath, "peerFiles")
-	dirPath = "C:\\Users\\mohan\\Desktop\\Courses\\Projects\\MDFS\\serverMultipleClient\\peerFiles"
+	peerNode = peer{masterNode: address, backup:false}
 
 	//Connect to serverBuild
 	//establishConnection(enc, dec)
@@ -99,11 +95,6 @@ func establishConnection() {
 	a := strings.Split(peerNode.networkAddr, ":")
 	peerNode.address = a[0]
 	peerNode.port, _ = strconv.Atoi(a[1])
-
-	//initialize the peerIdentifier which will
-	//be added as a trailing identifier to every
-	//file stored by the peer
-	peerIdentfier = a[1]+"_"
 
 	//create packet to send to the master
 	p := utils.CreatePacket(utils.PEER, "", unsafe.Sizeof(utils.PEER))
@@ -142,6 +133,21 @@ func establishConnection() {
 			peerNode.myPrimaryPeer = ""
 		}
 	}
+
+	//initialize the directory where the incoming
+	//files needs to be stored
+	//dirPath = filepath.Join(basePath, "peerFiles")
+	if resp.Backup {
+		dirPath = "C:\\Users\\mohan\\Desktop\\Courses\\Projects\\MDFS\\serverMultipleClient\\backupPeerFiles"
+	} else {
+		dirPath = "C:\\Users\\mohan\\Desktop\\Courses\\Projects\\MDFS\\serverMultipleClient\\peerFiles"
+	}
+
+	//initialize the peerIdentifier which will
+	//be added as a trailing identifier to every
+	//file stored by the peer
+	peerIdentfier = a[1]+"_"
+
 
 	conn.Close()
 	//handle the connection to the serverBuild
@@ -210,6 +216,11 @@ func handleConnection(conn net.Conn) {
 		println("Store request received")
 		defer conn.Close()
 		storeAndIndexFile(enc, dec, recv.PfileInfo)
+		p := peerNode
+		fmt.Println(p)
+		if peerNode.backup{
+			go UpdateBackupPeerStore(recv.PfileInfo.Name)
+		}
 		fmt.Println("Store request handled")
 	}
 }
@@ -228,7 +239,13 @@ Returns: Nil
 func updateBackupPeer(encB *gob.Encoder, content string) {
 	//update the backup peer in the
 	//current instance
-	peerNode.backupPeer = content
+	values := strings.Split(content, ",")
+	peerNode.backupPeer = values[0]
+	if values[1] == "true"{
+		peerNode.backup = true
+	} else {
+		peerNode.backup = false
+	}
 
 	//send the confirmation to the backup
 	//peer
@@ -258,7 +275,8 @@ func updatePrimary() {
 	dec_1 := gob.NewDecoder(conn)
 
 	for {
-		pkt := utils.CreatePacket(utils.UPDATE, peerNode.networkAddr, 0)
+
+		pkt := utils.CreatePacket(utils.UPDATE, peerNode.networkAddr+string(",true"), 0)
 		err = enc_1.Encode(pkt)
 		if err != nil {
 			fmt.Println("Error encoding the update packet: ", err.Error())
@@ -342,6 +360,7 @@ func storeAndIndexFile(enc *gob.Encoder, dec *gob.Decoder, fileinfo utils.File) 
 		utils.ValidateError(err)
 	} else {
 		//if the file does not exist
+		index[fName] = false
 		filePath := filepath.Join(dirPath, peerIdentfier+fName)
 		file, err = os.OpenFile(filePath, os.O_CREATE|os.O_WRONLY, 0755)
 		utils.ValidateError(err)
