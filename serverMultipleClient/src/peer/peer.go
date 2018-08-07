@@ -2,7 +2,6 @@ package peer
 
 import (
 	"encoding/gob"
-	"flag"
 	"fmt"
 	"net"
 	"strconv"
@@ -10,7 +9,7 @@ import (
 	"unsafe"
 	"utils"
 	"os"
-	"log"
+	"path/filepath"
 )
 
 ////////////////////////////////////////////////////////////
@@ -27,10 +26,12 @@ type peer struct {
 
 //Global variables
 var (
-	peerNode peer
-	enc *gob.Encoder
-	dec *gob.Decoder
-	index map[string]bool
+	peerNode      peer
+	enc           *gob.Encoder
+	dec           *gob.Decoder
+	index         map[string]bool
+	dirPath       string
+	peerIdentfier string
 )
 
 ////////////////////////////////////////////////////////////
@@ -39,10 +40,10 @@ var (
 /*
 Driver Program
 */
-func Start() {
+func Start(remoteAddr string, remotePort string) {
 
 	//Start the peerBuild
-	initializePeer()
+	initializePeer(remoteAddr, remotePort)
 
 }
 
@@ -52,27 +53,24 @@ values which are parsed from the command line.
 
 Returns: nil
 */
-func initializePeer() {
-
-	//parse the command line arguments
-	remoteAddr := flag.String("addr", "127.0.0.1", "The address of the serverBuild to connect to."+
-		"Default is localhost")
-
-	remotePort := flag.String("port", "9999", "Port to listen for incoming connections.")
-
-	flag.Parse()
+func initializePeer(remoteAddr string, remotePort string) {
 
 	//form the network address for the node
-	address := *remoteAddr + ":" + *remotePort
+	address := remoteAddr + ":" + remotePort
 
 	//initialize the global variable
 	//representing master node
-	_, err := strconv.Atoi(*remotePort)
+	_, err := strconv.Atoi(remotePort)
 	if err != nil {
 		fmt.Printf("Conversion Error: %s", err.Error())
 	}
 
 	peerNode = peer{masterNode: address}
+
+	//initialize the directory where the incoming
+	//files needs to be stored
+	//dirPath = filepath.Join(basePath, "peerFiles")
+	dirPath = "C:\\Users\\mohan\\Desktop\\Courses\\Projects\\MDFS\\serverMultipleClient\\peerFiles"
 
 	//Connect to serverBuild
 	//establishConnection(enc, dec)
@@ -101,6 +99,11 @@ func establishConnection() {
 	a := strings.Split(peerNode.networkAddr, ":")
 	peerNode.address = a[0]
 	peerNode.port, _ = strconv.Atoi(a[1])
+
+	//initialize the peerIdentifier which will
+	//be added as a trailing identifier to every
+	//file stored by the peer
+	peerIdentfier = a[1]+"_"
 
 	//create packet to send to the master
 	p := utils.CreatePacket(utils.PEER, "", unsafe.Sizeof(utils.PEER))
@@ -204,6 +207,7 @@ func handleConnection(conn net.Conn) {
 		updateBackupPeer(enc, recv.Pcontent)
 		fmt.Println("Backup Peer updated")
 	case utils.STORE:
+		println("Store request received")
 		defer conn.Close()
 		storeAndIndexFile(enc, dec, recv.PfileInfo)
 		fmt.Println("Store request handled")
@@ -278,7 +282,6 @@ func updatePrimary() {
 		}
 	}
 
-
 }
 
 /*
@@ -298,91 +301,84 @@ Params:
 			for reading a byte stream from the
 			network io reader. It stores the received
 			byte stream in variable of type Utils.Packet
-	fileinfo: os.FileInfo
-			Variable which stores the FileInfo stats
+	fileinfo: utils.File
+			Variable which stores the File stats
 			sent by the client.
 
 Returns: Nil
  */
-func storeAndIndexFile(enc *gob.Encoder, dec *gob.Decoder, fileinfo os.FileInfo)  {
+func storeAndIndexFile(enc *gob.Encoder, dec *gob.Decoder, fileinfo utils.File) {
 
 	/*check if file exists in peer file
 	registry*/
 	//get the file name
-	fName := fileinfo.Name()
+	fName := fileinfo.Name
 
 	//verify if there exists a registry for the
 	//peer
-	if index == nil{
+	var ok bool
+	var file *os.File
+	var err error
+
+	if index == nil {
 		//if a registry doesn't exists
 		//create a registry of type map[string]bool
 		//and add the file to the registry
 		index = map[string]bool{
 			fName: false,
 		}
-	} else{
+
+		ok = false
+	} else {
 		//if a registry exists, check if a file
 		//exists
-		_, ok:= index[fName]
-		var file *os.File
-		var err error
-		if ok{
-			//if the file exists
-			file, err = os.OpenFile(fName+"_temp", os.O_WRONLY, 0755)
-			validateError(err)
-		} else{
-			//if the file does not exist
-			file, err = os.OpenFile(fName, os.O_CREATE|os.O_WRONLY, 0755)
-			validateError(err)
-		}
+		_, ok = index[fName]
+	}
 
+	if ok {
+		//if the file exists
+		filePath := filepath.Join(dirPath, peerIdentfier+"_temp_"+fName)
+		file, err = os.OpenFile(filePath, os.O_WRONLY, 0755)
+		utils.ValidateError(err)
+	} else {
+		//if the file does not exist
+		filePath := filepath.Join(dirPath, peerIdentfier+fName)
+		file, err = os.OpenFile(filePath, os.O_CREATE|os.O_WRONLY, 0755)
+		utils.ValidateError(err)
+	}
 
-		//send an acknowledgment that peer is ready to
-		// read and read whenever there is a data
-		// from the network and write to the
-		//file as long as the data packet is valid
-		var pack utils.Packet
-		pack.Ptype = utils.RESPONSE
-		err = enc.Encode(pack)
-		validateError(err)
+	//send an acknowledgment that peer is ready to
+	// read and read whenever there is a data
+	// from the network and write to the
+	//file as long as the data packet is valid
+	var pack utils.Packet
+	pack.Ptype = utils.RESPONSE
+	err = enc.Encode(pack)
+	utils.ValidateError(err)
 
-		//until the packet type is
-		//utils.DATA_END
-		for{
-			err := dec.Decode(&pack)
-			validateError(err)
+	//until the packet type is
+	//utils.DATA_END
+	for {
+		err := dec.Decode(&pack)
+		utils.ValidateError(err)
 
-			//check the packet type
-			if pack.Ptype == utils.DATA{
-				_, err := file.Write([]byte(pack.Pcontent))
-				validateError(err)
-			} else if pack.Ptype == utils.DATA_END{
-				_, err := file.Write([]byte(pack.Pcontent))
-				validateError(err)
+		//check the packet type
+		if pack.Ptype == utils.DATA {
+			_, err := file.Write([]byte(pack.Pcontent))
+			utils.ValidateError(err)
+		} else if pack.Ptype == utils.DATA_END {
+			_, err := file.Write([]byte(pack.Pcontent))
+			utils.ValidateError(err)
 
-				file.Close()
-				break
-			}
-		}
-
-		//if its temporary file, delete the original
-		//and the make the temporary copy the final copy
-		if ok{
-			err = os.Rename(fName, file.Name())
-			validateError(err)
+			file.Close()
+			break
 		}
 	}
-}
 
-/*
-Responsible for writing the err response
-to the log.
-
-Params:
-	err: Error
- */
-func validateError(err error)  {
-	if err != nil{
-		log.Fatal(err)
+	//if its temporary file, delete the original
+	//and the make the temporary copy the final copy
+	if ok {
+		err = os.Rename(fName, file.Name())
+		utils.ValidateError(err)
 	}
 }

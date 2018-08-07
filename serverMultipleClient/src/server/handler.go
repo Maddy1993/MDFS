@@ -24,7 +24,7 @@ func handleConnection(conn net.Conn) {
 	var recv utils.Packet
 	err := dec.Decode(&recv)
 	if err != nil {
-		print("Error while decoding peer packet: ", err.Error())
+		print("Error while decoding packet: ", err.Error())
 	}
 
 	//parse the packet
@@ -36,22 +36,17 @@ func handleConnection(conn net.Conn) {
 		//var response utils.ClientResponse
 		// TODO: selecting the peers according to hash
 		fmt.Println("Sending Response to Client, content:", recv.Pcontent)
-		var primary, backup string
+		var primary string
 		for ip, _ := range masterNode.peers {
 			primary = ip
 			//fmt.Printf("IP: %s, Port: %d", ip, port)
 		}
 
-		for primary_peer, backup_peer := range masterNode.backupPeers {
-			if primary == primary_peer {
-				backup = backup_peer
-			}
-		}
-
-		response := utils.CreateClientResponse(utils.RESPONSE, primary, backup)
+		backupPeer, _ := masterNode.backupPeers[primary]
+		response := utils.CreateClientResponse(utils.RESPONSE, primary, backupPeer)
 		enc = gob.NewEncoder(conn)
 		err := enc.Encode(response)
-		utils.Check(err)
+		utils.ValidateError(err)
 	}
 
 	//close the connection

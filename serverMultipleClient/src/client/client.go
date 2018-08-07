@@ -1,103 +1,255 @@
 package client
 
 import (
-	"bufio"
-	"encoding/gob"
-	"flag"
+		"encoding/gob"
 	"fmt"
 	"io/ioutil"
 	"net"
-	"os"
-	"strconv"
+		"strconv"
 	"strings"
 	"unsafe"
 	"utils"
-)
+	"bufio"
+	"os"
+	"path/filepath"
+	)
 
+
+////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
+
+//Structures
 type client struct {
 	address       string
 	port          int
-	myPrimaryPeer string
-	backupPeer    string
-	masterNode    string
+	masterNode string
+	//backupPeer    string
+	//masterNode    string
 }
 
-// global data
-var clientNode client
-var encode *gob.Encoder
-var decode *gob.Decoder
+// global variables
+var (
+	clientNode client
+	encode *gob.Encoder
+	decode *gob.Decoder
+	dirPath string
+)
 
-func Start() {
-	reader := bufio.NewReader(os.Stdin)
-	fmt.Printf("Enter file_name: \n")
-	file_name, err := reader.ReadString('\n')
-	utils.Check(err)
-	file_name = strings.TrimSuffix(file_name, "\n")
-	//fmt.Printf(file_name)
+////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
 
-	initializeClient(file_name)
+
+
+//Entry point to the client process. This function
+//takes the master server IP address and port as the
+//input and acts as an interface to the client process
+//by initializing the client process.
+//Params:
+//	@remoteAddr: string
+//		Takes the master server IP address in the
+//		string format
+//	@remotePort: string
+//		Takes the master server port in the string
+//		format
+//Returns: nil
+func Start(remoteAddr string, remotePort string) {
+
+	//initialize the client instance
+	initializeClient(remoteAddr, remotePort)
+
+	//instantiate the command line interface
+	//to the user
+	initializeCLI()
 
 }
 
 // init the client
-func initializeClient(file_name string) {
-	//parse the command line arguments
-	remoteAddr := flag.String("addr", "127.0.0.1", "The address of the Master to connect to."+
-		"Default is localhost")
-
-	remotePort := flag.String("port", "9999", "Port of the Master daemon.")
-
-	flag.Parse()
+func initializeClient(remoteAddr string, remotePort string) {
 
 	//form the network address for the node
-	address := *remoteAddr + ":" + *remotePort
+	address := remoteAddr + ":" + remotePort
 	clientNode = client{masterNode: address}
 
-	establishConnection(file_name)
+	//set the directory path from which the
+	//client can read the files
+	//r := bufio.NewReader(os.Stdin)
+	//dirPath, _ := r.ReadString('\n')
+	dirPath = "C:\\Users\\mohan\\Desktop\\Courses\\Projects\\MDFS\\serverMultipleClient\\clientFiles"
 }
 
-func sendPacket(conn net.Conn, packet utils.Packet) {
-	//gob.Register(os.FileInfo)
-	encode = gob.NewEncoder(conn)
-	err := encode.Encode(packet)
-	utils.Check(err)
+//Function which initializes the Command-line
+//interface to the user, making the client features
+//available to the user in terms of commmands.
+func initializeCLI()  {
+
+	//cli declarations
+	clientIpAddr, err := utils.ExternalIP()
+	utils.ValidateError(err)
+
+	cliMessage := "client@" + clientIpAddr + ">>"
+	reader := bufio.NewReader(os.Stdin)
+
+	//in an infinite loop
+	for{
+		fmt.Print(cliMessage)
+
+		//read the input command.
+		command, err := reader.ReadString('\n')
+		utils.ValidateError(err)
+
+		//process and validate the input command
+		processAndValidate(command)
+	}
 }
 
-func establishConnection(file_name string) {
+//Function which processes the input command
+//and validates it against the valid options.
+func processAndValidate(command string){
+	//Step-1: Remove unexpected suffixes
+	command = strings.TrimSuffix(command, "\n")
+
+	//Step-2: Split the string into tokens
+	tokens := strings.Split(command, " ")
+
+	switch tokens[0] {
+	case "send":
+		conn := establishConnection()
+
+		//create a struct for the file
+		f, err := os.Stat(filepath.Join(dirPath,tokens[1]))
+		utils.ValidateError(err)
+
+		fileV := utils.File{
+			Name:f.Name(),
+			Size:f.Size(),
+		}
+
+		println("Received primary details")
+		println(fileV.Name)
+		defer conn.Close()
+		sendFile(conn, fileV)
+		break
+	case "receive":
+	}
+}
+
+//Function which establishes a connection
+//to the master server on demand
+func establishConnection() (conn net.Conn){
+	//dial a TCP connection to the master node/server
 	conn, err := net.Dial("tcp", clientNode.masterNode)
-	utils.Check(err)
-	networkAddr := conn.LocalAddr().String()
-	addr := strings.Split(networkAddr, ":")
-	clientNode.address = addr[0]
-	clientNode.port, err = strconv.Atoi(addr[1])
-	utils.Check(err)
-	total_size := unsafe.Sizeof(utils.STORE) + unsafe.Sizeof(string(file_name))
-	packet := utils.CreatePacket(utils.STORE, string(file_name), total_size)
-	//fileInfo, err := os.Stat(file_name)
-	//utils.Check(err)
-	//packet.PfileInfo = fileInfo
-	sendPacket(conn, packet)
-	decode = gob.NewDecoder(conn)
+	utils.ValidateError(err)
 
+	//initialize the client instance with its
+	//system local address and port
+	if clientNode.address == "" && clientNode.port == 0 {
+		//get the local address from the connection
+		networkAddr := conn.LocalAddr().String()
+		addr := strings.Split(networkAddr, ":")
+
+		//initialize the processed values
+		clientNode.address = addr[0]
+		clientNode.port, err = strconv.Atoi(addr[1])
+		utils.ValidateError(err)
+	}
+
+	return
+}
+
+//Function which sends the file to the
+//server established on the conn instance passed
+//as a parameter
+//Params:
+//	@conn: net.Conn
+//		Instance which holds the TCP connection
+//		to the master server
+//	@fileV: file
+//		An instance of the file structure
+//		which holds the file name, the address
+//		of the primary and backup peers where the
+//		file is present at, in a string format.
+//Returns: nil
+func sendFile(conn net.Conn, fileV utils.File)  {
+	var err error
+	//create the packet to send to the server
+	totalSize := unsafe.Sizeof(utils.STORE) + unsafe.Sizeof(string(fileV.Name))
+	packet := utils.CreatePacket(utils.STORE, string(fileV.Name), totalSize)
+	packet.PfileInfo = fileV
+
+	println("Reached here")
+	//send the packet
+	gob.Register(utils.Packet{})
+	gob.Register(utils.File{})
+	encode = gob.NewEncoder(conn)
+	err = encode.Encode(packet)
+	utils.ValidateError(err)
+
+	//Receive the confirmation packet
+	//from the master and decode the peer
+	//details
 	var response utils.ClientResponse
+	decode = gob.NewDecoder(conn)
 	err = decode.Decode(&response)
-	utils.Check(err)
+	println("Reached here too")
+	utils.ValidateError(err)
+
 
 	if response.Ptype == utils.RESPONSE {
-		fmt.Printf("Primary %s, Secondary %s", response.PrimaryNetAddr, response.BackupNetAddr)
-		clientNode.myPrimaryPeer = response.PrimaryNetAddr
-		clientNode.backupPeer = response.BackupNetAddr
+		fmt.Printf("Primary %s, Secondary %s\n", response.PrimaryNetAddr, response.BackupNetAddr)
+		fileV.PrimaryPeer = response.PrimaryNetAddr
+		fileV.BackupPeer = response.BackupNetAddr
 	}
-	conn.Close()
-	sendDataToPeer(file_name)
+
+	//once the primary and backup peer
+	//credentials have been established,
+	//contact the primary and send the file.
+	sendData(fileV)
 }
 
-func sendDataToPeer(file_name string) {
-	file_data, err := ioutil.ReadFile(file_name)
-	utils.Check(err)
-	conn, err := net.Dial("tcp", clientNode.myPrimaryPeer)
-	utils.Check(err)
-	total_size := unsafe.Sizeof(utils.STORE) + unsafe.Sizeof(string(file_data))
-	packet := utils.CreatePacket(utils.STORE, string(file_data), total_size)
-	sendPacket(conn, packet)
+//Function which establishes connection
+//with the primary peer address received
+//from the master node and sends the file
+func sendData(fileV utils.File) {
+
+	//read the file contents
+	fileData, err := ioutil.ReadFile(filepath.Join(dirPath,fileV.Name))
+	utils.ValidateError(err)
+
+	//establish connection with the
+	//primary peer
+	conn, err := net.Dial("tcp", fileV.PrimaryPeer)
+	utils.ValidateError(err)
+
+	//create a network encoder and deocder
+	encode = gob.NewEncoder(conn)
+	decode = gob.NewDecoder(conn)
+
+	//send a STORE request to the primary peer
+	totalSize := unsafe.Sizeof(utils.STORE) + unsafe.Sizeof(string(fileData))
+	packet := utils.CreatePacket(utils.STORE, string(fileData), totalSize)
+
+	//register the interface with the gob
+	gob.Register(utils.Packet{})
+	packet.PfileInfo = fileV
+	utils.ValidateError(err)
+
+	//once the packet is ready,
+	//send a STORE request to the primary
+	err = encode.Encode(packet)
+
+	//Expect a RESPONSE from the primary
+	//confirming the client that the necessary
+	//setups are done and file can now be sent.
+	var resp utils.Packet
+	err = decode.Decode(&resp)
+
+	//validate the packet received. If
+	//it is of the type response, send
+	//the data on the same established connection
+	if resp.Ptype == utils.RESPONSE {
+		totalSize := unsafe.Sizeof(utils.DATA_END) + unsafe.Sizeof(string(fileData))
+		packet := utils.CreatePacket(utils.DATA_END, string(fileData), totalSize)
+		err = encode.Encode(packet)
+		utils.ValidateError(err)
+	}
 }

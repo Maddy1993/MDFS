@@ -2,7 +2,6 @@ package server
 
 import (
 	"encoding/gob"
-	"flag"
 	"fmt"
 	"net"
 	"strconv"
@@ -29,41 +28,24 @@ var previousPeer string
 ///////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////
 /*
-Driver function
-*/
-func main() {
-
-	//Start the serverBuild
-	StartServer()
-}
-
-/*
 Function which initializes the master struct with initial
 values which are parsed from the command line.
 
 Returns: nil
 */
-func initializeMaster() {
-
-	//parse the command line arguments
-	server := flag.String("serverAddr", "", "The address of the serverBuild to connect to."+
-		"Default is localhost")
-
-	port := flag.String("port", "9999", "Port to listen for incoming connections.")
-
-	flag.Parse()
+func initializeMaster(server string, port string) {
 
 	//form the network address for the node
-	address := *server + ":" + *port
+	address := server + ":" + port
 
 	//initialize the global variable
 	//representing master node
-	p, err := strconv.Atoi(*port)
+	p, err := strconv.Atoi(port)
 	if err != nil {
 		fmt.Printf("Conversion Error: %s", err.Error())
 	}
 
-	masterNode = master{address: *server, port: p, networkAddr: address,
+	masterNode = master{address: server, port: p, networkAddr: address,
 		peers: make(map[string]int), backupPeers: make(map[string]string)}
 
 }
@@ -123,11 +105,11 @@ Function which starts the serverBuild and
 passes the initialized values for listening
 on the designated port.
 */
-func StartServer() {
+func StartServer(server string, port string) {
 
 	//initialize the structure to define the
 	//master node
-	initializeMaster()
+	initializeMaster(server, port)
 
 	//once the master node is initialized,
 	//listen on the dedicated port and accept

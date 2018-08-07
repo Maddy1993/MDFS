@@ -1,6 +1,8 @@
 package utils
 
-import "os"
+import (
+		"log"
+)
 
 //global variable declaration
 //Usage:
@@ -19,9 +21,16 @@ import "os"
 
 type Packet struct {
 	Ptype     int
-	PfileInfo os.FileInfo
+	PfileInfo File
 	Pcontent  string
 	Psize     uintptr
+}
+
+type File struct{
+	Name string
+	Size int64
+	PrimaryPeer string
+	BackupPeer string
 }
 
 /*
@@ -109,12 +118,22 @@ func CreateResponse(p_type int, backup bool, parent string) Response {
 	return Response{Ptype: p_type, Backup: backup, NetAddress: parent}
 }
 
+/*
+
+ */
 func CreateClientResponse(p_type int, primary string, backup string) ClientResponse {
 	return ClientResponse{Ptype: p_type, PrimaryNetAddr: primary, BackupNetAddr: backup}
 }
 
-func Check(e error) {
-	if e != nil {
-		panic(e)
+/*
+Responsible for writing the err response
+to the log.
+
+Params:
+	err: Error
+ */
+func ValidateError(err error)  {
+	if err != nil{
+		log.Fatal(err)
 	}
 }
