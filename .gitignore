@@ -1,1 +1,5 @@
 serverMultipleClient/.idea/workspace.xml
+serverMultipleClient/pkg/windows_amd64/server.a
+serverMultipleClient/pkg/windows_amd64/client.a
+serverMultipleClient/pkg/windows_amd64/utils.a
+serverMultipleClient/pkg/windows_amd64/peer.a
