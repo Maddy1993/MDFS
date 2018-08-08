@@ -79,7 +79,7 @@ func initializeClient(remoteAddr string, remotePort string) {
 	//r := bufio.NewReader(os.Stdin)
 	//dirPath, _ := r.ReadString('\n')
 	dirPath = "C:\\Users\\mohan\\Desktop\\Courses\\Projects\\MDFS\\serverMultipleClient\\clientFiles"
-	//dirPath = "Z:\\MS_NEU\\Courses\\CS\\Project\\MDFS\\serverMultipleClient\\clientFiles"
+	dirPath = "Z:\\MS_NEU\\Courses\\CS\\Project\\MDFS\\serverMultipleClient\\clientFiles"
 }
 
 //Function which initializes the Command-line
@@ -130,7 +130,7 @@ func processAndValidate(command string) {
 	case "receive":
 		fmt.Printf("Primary %s, Secondary %s\n", filePeerMap[tokens[1]].primaryPeer, filePeerMap[tokens[1]].backupPeer)
 		data := fetchDataFromPeer(tokens[1], filePeerMap[tokens[1]].primaryPeer, filePeerMap[tokens[1]].backupPeer)
-		fmt.Printf("Data from Peer received:\n%s", data)
+		fmt.Printf("Data from Peer received:\n%s\n", data)
 	}
 }
 
@@ -138,7 +138,7 @@ func fetchDataFromPeer(fileName string, primaryPeer string, backupPeer string) s
 	conn, err := net.DialTimeout("tcp", primaryPeer, time.Duration(100))
 	//utils.ValidateError(err)
 	if err != nil {
-		fmt.Printf("Primary Peer down Fetch from Bakup")
+		fmt.Printf("Primary Peer down Fetch from Backup\n")
 		conn, err = net.DialTimeout("tcp", backupPeer, time.Duration(100))
 		utils.ValidateError(err)
 	}
@@ -288,14 +288,14 @@ func sendData(fileV utils.File) {
 //		A variable which holds the value of
 //		file name processed from the command
 //Returns: fileV utils.File
-func MakeFileStruct(fileName string, d string, suffix string) (fileV utils.File)  {
+func MakeFileStruct(fileName string, d string, suffix string) (fileV utils.File) {
 	//create a struct for the file
-	f, err := os.Stat(filepath.Join(d,suffix+fileName))
+	f, err := os.Stat(filepath.Join(d, suffix+fileName))
 	utils.ValidateError(err)
 
 	fileV = utils.File{
-		Name:f.Name(),
-		Size:f.Size(),
+		Name: f.Name(),
+		Size: f.Size(),
 	}
 
 	return

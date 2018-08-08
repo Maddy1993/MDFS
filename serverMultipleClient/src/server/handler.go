@@ -3,7 +3,9 @@ package server
 import (
 	"encoding/gob"
 	"fmt"
+	"math/rand"
 	"net"
+	"reflect"
 	"strconv"
 	"strings"
 	"utils"
@@ -17,6 +19,13 @@ other functions to complete the tasks
 
 Returns: nil
 */
+
+func MapRandomKeyGet(mapI interface{}) interface{} {
+	keys := reflect.ValueOf(mapI).MapKeys()
+
+	return keys[rand.Intn(len(keys))].Interface()
+}
+
 func handleConnection(conn net.Conn) {
 
 	//Receive and Decode the packet on the
@@ -36,14 +45,14 @@ func handleConnection(conn net.Conn) {
 		//var response utils.ClientResponse
 		// TODO: selecting the peers according to hash
 		fmt.Println("Sending Response to Client, content:", recv.Pcontent)
-		var primary string
-		for ip, _ := range masterNode.peers {
-			primary = ip
-			//fmt.Printf("IP: %s, Port: %d", ip, port)
-		}
-
-		backupPeer, _ := masterNode.backupPeers[primary]
-		response := utils.CreateClientResponse(utils.RESPONSE, primary, backupPeer)
+		//var primary string
+		//for ip, _ := range masterNode.peers {
+		//	primary = ip
+		//	//fmt.Printf("IP: %s, Port: %d", ip, port)
+		//}
+		primary := MapRandomKeyGet(masterNode.peers)
+		backupPeer, _ := masterNode.backupPeers[primary.(string)]
+		response := utils.CreateClientResponse(utils.RESPONSE, primary.(string), backupPeer)
 		enc = gob.NewEncoder(conn)
 		err := enc.Encode(response)
 		utils.ValidateError(err)

@@ -3,6 +3,7 @@ package peer
 import (
 	"encoding/gob"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net"
 	"os"
@@ -11,7 +12,6 @@ import (
 	"strings"
 	"unsafe"
 	"utils"
-	"io"
 )
 
 ////////////////////////////////////////////////////////////
@@ -68,13 +68,13 @@ func initializePeer(remoteAddr string, remotePort string) {
 		fmt.Printf("Conversion Error: %s", err.Error())
 	}
 
-	peerNode = peer{masterNode: address, backupExists:false}
+	peerNode = peer{masterNode: address, backupExists: false}
 
 	//initialize the directory where the incoming
 	//files needs to be stored
 	//dirPath = filepath.Join(basePath, "peerFiles")
 	dirPath = "C:\\Users\\mohan\\Desktop\\Courses\\Projects\\MDFS\\serverMultipleClient\\peerFiles"
-	//dirPath = "Z:\\MS_NEU\\Courses\\CS\\Project\\MDFS\\serverMultipleClient\\peerFiles"
+	dirPath = "Z:\\MS_NEU\\Courses\\CS\\Project\\MDFS\\serverMultipleClient\\peerFiles"
 
 	//Connect to serverBuild
 	//establishConnection(enc, dec)
@@ -152,15 +152,17 @@ func establishConnection() {
 	//dirPath = filepath.Join(basePath, "peerFiles")
 	if resp.Backup {
 		dirPath = "C:\\Users\\mohan\\Desktop\\Courses\\Projects\\MDFS\\serverMultipleClient\\backupPeerFiles"
+		dirPath = "Z:\\MS_NEU\\Courses\\CS\\Project\\MDFS\\serverMultipleClient\\backupPeerFiles"
+
 	} else {
 		dirPath = "C:\\Users\\mohan\\Desktop\\Courses\\Projects\\MDFS\\serverMultipleClient\\peerFiles"
+		dirPath = "Z:\\MS_NEU\\Courses\\CS\\Project\\MDFS\\serverMultipleClient\\peerFiles"
 	}
 
 	//initialize the peerIdentifier which will
 	//be added as a trailing identifier to every
 	//file stored by the peer
-	peerIdentfier = a[1]+"_"
-
+	peerIdentfier = a[1] + "_"
 
 	conn.Close()
 	//handle the connection to the serverBuild
@@ -182,10 +184,11 @@ func listenAndAccept() {
 	//until a SIGNAL interrupt is passed or an exception is
 	//raised, keep on accepting peerBuild connections and add it
 	//to the peer map.
+	fmt.Printf("\nListening on Port: %d\n", peerNode.port)
 	for {
 
 		//debug information
-		fmt.Printf("\nListening on Port: %d\n", peerNode.port)
+		//fmt.Printf("\nListening on Port: %d\n", peerNode.port)
 
 		//accept incoming connections
 		conn, err := adapter.Accept()
@@ -271,7 +274,7 @@ func updateBackupPeer(encB *gob.Encoder, content string) {
 	//current instance
 	values := strings.Split(content, ",")
 	peerNode.backupPeer = values[0]
-	if values[1] == "true"{
+	if values[1] == "true" {
 		peerNode.backupExists = true
 	} else {
 		peerNode.backupExists = false
