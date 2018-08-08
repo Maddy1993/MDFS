@@ -3,13 +3,14 @@ package peer
 import (
 	"encoding/gob"
 	"fmt"
+	"io/ioutil"
 	"net"
+	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"unsafe"
 	"utils"
-	"os"
-	"path/filepath"
 	"io"
 )
 
@@ -69,6 +70,12 @@ func initializePeer(remoteAddr string, remotePort string) {
 
 	peerNode = peer{masterNode: address, backupExists:false}
 
+	//initialize the directory where the incoming
+	//files needs to be stored
+	//dirPath = filepath.Join(basePath, "peerFiles")
+	//dirPath = "C:\\Users\\mohan\\Desktop\\Courses\\Projects\\MDFS\\serverMultipleClient\\peerFiles"
+	dirPath = "Z:\\MS_NEU\\Courses\\CS\\Project\\MDFS\\serverMultipleClient\\peerFiles"
+
 	//Connect to serverBuild
 	//establishConnection(enc, dec)
 	establishConnection()
@@ -96,6 +103,11 @@ func establishConnection() {
 	a := strings.Split(peerNode.networkAddr, ":")
 	peerNode.address = a[0]
 	peerNode.port, _ = strconv.Atoi(a[1])
+
+	//initialize the peerIdentifier which will
+	//be added as a trailing identifier to every
+	//file stored by the peer
+	peerIdentfier = a[1] + "_"
 
 	//create packet to send to the master
 	p := utils.CreatePacket(utils.PEER, "", unsafe.Sizeof(utils.PEER))
@@ -223,7 +235,24 @@ func handleConnection(conn net.Conn) {
 			go UpdateBackupPeerStore(recv.PfileInfo.Name)
 		}
 		fmt.Println("Store request handled")
+	case utils.FETCH:
+		println("Fetch request received")
+		defer conn.Close()
+		fetchDataFromFile(enc, dec, recv.Pcontent)
+		println("Fetch request handled")
 	}
+}
+
+func fetchDataFromFile(enc *gob.Encoder, dec *gob.Decoder, fileName string) {
+	filePath := filepath.Join(dirPath, peerIdentfier+fileName)
+	fileData, err := ioutil.ReadFile(filePath)
+	utils.ValidateError(err)
+
+	totalSize := unsafe.Sizeof(utils.DATA) + unsafe.Sizeof(fileData)
+	packet := utils.CreatePacket(utils.DATA, string(fileData), totalSize)
+	gob.Register(utils.Packet{})
+	err = enc.Encode(packet)
+	utils.ValidateError(err)
 }
 
 /*
@@ -326,7 +355,7 @@ Params:
 			sent by the client.
 
 Returns: Nil
- */
+*/
 func storeAndIndexFile(enc *gob.Encoder, dec *gob.Decoder, fileinfo utils.File) {
 
 	/*check if file exists in peer file

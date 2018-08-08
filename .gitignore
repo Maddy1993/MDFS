@@ -4,5 +4,5 @@ serverMultipleClient/pkg/windows_amd64/client.a
 serverMultipleClient/pkg/windows_amd64/utils.a
 serverMultipleClient/pkg/windows_amd64/peer.a
 serverMultipleClient/backupPeerFiles/
-serverMultipleClient/peerFiles/62688_the_c_programming_language_2.pdf
-serverMultipleClient/clientFiles/the_c_programming_language_2.pdf
+serverMultipleClient/peerFiles/
+serverMultipleClient/clientFiles/
