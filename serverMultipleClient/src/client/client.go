@@ -1,44 +1,48 @@
 package client
 
 import (
-		"encoding/gob"
+	"bufio"
+	"encoding/gob"
 	"fmt"
 	"io/ioutil"
 	"net"
-		"strconv"
-	"strings"
-	"unsafe"
-	"utils"
-	"bufio"
 	"os"
 	"path/filepath"
-	)
-
+	"strconv"
+	"strings"
+	"time"
+	"unsafe"
+	"utils"
+)
 
 ////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////
 
 //Structures
 type client struct {
-	address       string
-	port          int
+	address    string
+	port       int
 	masterNode string
 	//backupPeer    string
 	//masterNode    string
 }
 
+type peerInfo struct {
+	primaryPeer string
+	backupPeer  string
+}
+
 // global variables
 var (
-	clientNode client
-	encode *gob.Encoder
-	decode *gob.Decoder
-	dirPath string
+	clientNode  client
+	encode      *gob.Encoder
+	decode      *gob.Decoder
+	dirPath     string
+	filePeerMap map[string]peerInfo
 )
 
 ////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////
-
-
 
 //Entry point to the client process. This function
 //takes the master server IP address and port as the
@@ -74,14 +78,16 @@ func initializeClient(remoteAddr string, remotePort string) {
 	//client can read the files
 	//r := bufio.NewReader(os.Stdin)
 	//dirPath, _ := r.ReadString('\n')
-	dirPath = "C:\\Users\\mohan\\Desktop\\Courses\\Projects\\MDFS\\serverMultipleClient\\clientFiles"
+	//dirPath = "C:\\Users\\mohan\\Desktop\\Courses\\Projects\\MDFS\\serverMultipleClient\\clientFiles"
+	dirPath = "Z:\\MS_NEU\\Courses\\CS\\Project\\MDFS\\serverMultipleClient\\clientFiles"
 }
 
 //Function which initializes the Command-line
 //interface to the user, making the client features
 //available to the user in terms of commmands.
-func initializeCLI()  {
+func initializeCLI() {
 
+	filePeerMap = make(map[string]peerInfo)
 	//cli declarations
 	clientIpAddr, err := utils.ExternalIP()
 	utils.ValidateError(err)
@@ -90,7 +96,7 @@ func initializeCLI()  {
 	reader := bufio.NewReader(os.Stdin)
 
 	//in an infinite loop
-	for{
+	for {
 		fmt.Print(cliMessage)
 
 		//read the input command.
@@ -104,7 +110,7 @@ func initializeCLI()  {
 
 //Function which processes the input command
 //and validates it against the valid options.
-func processAndValidate(command string){
+func processAndValidate(command string) {
 	//Step-1: Remove unexpected suffixes
 	command = strings.TrimSuffix(command, "\n")
 
@@ -116,12 +122,12 @@ func processAndValidate(command string){
 		conn := establishConnection()
 
 		//create a struct for the file
-		f, err := os.Stat(filepath.Join(dirPath,tokens[1]))
+		f, err := os.Stat(filepath.Join(dirPath, tokens[1]))
 		utils.ValidateError(err)
 
 		fileV := utils.File{
-			Name:f.Name(),
-			Size:f.Size(),
+			Name: f.Name(),
+			Size: f.Size(),
 		}
 
 		println("Received primary details")
@@ -130,12 +136,40 @@ func processAndValidate(command string){
 		sendFile(conn, fileV)
 		break
 	case "receive":
+		fmt.Printf("Primary %s, Secondary %s\n", filePeerMap[tokens[1]].primaryPeer, filePeerMap[tokens[1]].backupPeer)
+		data := fetchDataFromPeer(tokens[1], filePeerMap[tokens[1]].primaryPeer, filePeerMap[tokens[1]].backupPeer)
+		fmt.Printf("Data from Peer received:\n%s", data)
 	}
+}
+
+func fetchDataFromPeer(fileName string, primaryPeer string, backupPeer string) string {
+	conn, err := net.DialTimeout("tcp", primaryPeer, time.Duration(10))
+	//utils.ValidateError(err)
+	if err != nil {
+		fmt.Printf("Primary Peer down Fetch from Bakup")
+		conn, err = net.DialTimeout("tcp", backupPeer, time.Duration(10))
+		utils.ValidateError(err)
+	}
+	totalSize := unsafe.Sizeof(utils.FETCH) + unsafe.Sizeof(fileName)
+	packet := utils.CreatePacket(utils.FETCH, fileName, totalSize)
+	gob.Register(utils.Packet{})
+	//gob.Register(utils.File{})
+	encode = gob.NewEncoder(conn)
+	decode = gob.NewDecoder(conn)
+
+	err = encode.Encode(packet)
+	utils.ValidateError(err)
+
+	var resp utils.Packet
+	err = decode.Decode(&resp)
+	utils.ValidateError(err)
+	conn.Close()
+	return resp.Pcontent
 }
 
 //Function which establishes a connection
 //to the master server on demand
-func establishConnection() (conn net.Conn){
+func establishConnection() (conn net.Conn) {
 	//dial a TCP connection to the master node/server
 	conn, err := net.Dial("tcp", clientNode.masterNode)
 	utils.ValidateError(err)
@@ -169,14 +203,14 @@ func establishConnection() (conn net.Conn){
 //		of the primary and backup peers where the
 //		file is present at, in a string format.
 //Returns: nil
-func sendFile(conn net.Conn, fileV utils.File)  {
+func sendFile(conn net.Conn, fileV utils.File) {
 	var err error
 	//create the packet to send to the server
 	totalSize := unsafe.Sizeof(utils.STORE) + unsafe.Sizeof(string(fileV.Name))
 	packet := utils.CreatePacket(utils.STORE, string(fileV.Name), totalSize)
 	packet.PfileInfo = fileV
 
-	println("Reached here")
+	//println("Reached here")
 	//send the packet
 	gob.Register(utils.Packet{})
 	gob.Register(utils.File{})
@@ -190,14 +224,14 @@ func sendFile(conn net.Conn, fileV utils.File)  {
 	var response utils.ClientResponse
 	decode = gob.NewDecoder(conn)
 	err = decode.Decode(&response)
-	println("Reached here too")
+	//println("Reached here too")
 	utils.ValidateError(err)
-
 
 	if response.Ptype == utils.RESPONSE {
 		fmt.Printf("Primary %s, Secondary %s\n", response.PrimaryNetAddr, response.BackupNetAddr)
 		fileV.PrimaryPeer = response.PrimaryNetAddr
 		fileV.BackupPeer = response.BackupNetAddr
+		filePeerMap[fileV.Name] = peerInfo{response.PrimaryNetAddr, response.BackupNetAddr}
 	}
 
 	//once the primary and backup peer
@@ -212,7 +246,7 @@ func sendFile(conn net.Conn, fileV utils.File)  {
 func sendData(fileV utils.File) {
 
 	//read the file contents
-	fileData, err := ioutil.ReadFile(filepath.Join(dirPath,fileV.Name))
+	fileData, err := ioutil.ReadFile(filepath.Join(dirPath, fileV.Name))
 	utils.ValidateError(err)
 
 	//establish connection with the
@@ -242,7 +276,7 @@ func sendData(fileV utils.File) {
 	//setups are done and file can now be sent.
 	var resp utils.Packet
 	err = decode.Decode(&resp)
-
+	utils.ValidateError(err)
 	//validate the packet received. If
 	//it is of the type response, send
 	//the data on the same established connection
