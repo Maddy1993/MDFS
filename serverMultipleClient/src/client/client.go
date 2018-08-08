@@ -78,8 +78,8 @@ func initializeClient(remoteAddr string, remotePort string) {
 	//client can read the files
 	//r := bufio.NewReader(os.Stdin)
 	//dirPath, _ := r.ReadString('\n')
-	//dirPath = "C:\\Users\\mohan\\Desktop\\Courses\\Projects\\MDFS\\serverMultipleClient\\clientFiles"
-	dirPath = "Z:\\MS_NEU\\Courses\\CS\\Project\\MDFS\\serverMultipleClient\\clientFiles"
+	dirPath = "C:\\Users\\mohan\\Desktop\\Courses\\Projects\\MDFS\\serverMultipleClient\\clientFiles"
+	//dirPath = "Z:\\MS_NEU\\Courses\\CS\\Project\\MDFS\\serverMultipleClient\\clientFiles"
 }
 
 //Function which initializes the Command-line
@@ -135,11 +135,11 @@ func processAndValidate(command string) {
 }
 
 func fetchDataFromPeer(fileName string, primaryPeer string, backupPeer string) string {
-	conn, err := net.DialTimeout("tcp", primaryPeer, time.Duration(10))
+	conn, err := net.DialTimeout("tcp", primaryPeer, time.Duration(100))
 	//utils.ValidateError(err)
 	if err != nil {
 		fmt.Printf("Primary Peer down Fetch from Bakup")
-		conn, err = net.DialTimeout("tcp", backupPeer, time.Duration(10))
+		conn, err = net.DialTimeout("tcp", backupPeer, time.Duration(100))
 		utils.ValidateError(err)
 	}
 	totalSize := unsafe.Sizeof(utils.FETCH) + unsafe.Sizeof(fileName)

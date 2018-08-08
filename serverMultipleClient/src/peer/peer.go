@@ -73,8 +73,8 @@ func initializePeer(remoteAddr string, remotePort string) {
 	//initialize the directory where the incoming
 	//files needs to be stored
 	//dirPath = filepath.Join(basePath, "peerFiles")
-	//dirPath = "C:\\Users\\mohan\\Desktop\\Courses\\Projects\\MDFS\\serverMultipleClient\\peerFiles"
-	dirPath = "Z:\\MS_NEU\\Courses\\CS\\Project\\MDFS\\serverMultipleClient\\peerFiles"
+	dirPath = "C:\\Users\\mohan\\Desktop\\Courses\\Projects\\MDFS\\serverMultipleClient\\peerFiles"
+	//dirPath = "Z:\\MS_NEU\\Courses\\CS\\Project\\MDFS\\serverMultipleClient\\peerFiles"
 
 	//Connect to serverBuild
 	//establishConnection(enc, dec)
