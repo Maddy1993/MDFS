@@ -13,12 +13,12 @@ import (
 
 //Function which will be spawned in a different
 //go routine and is responsible for maintaining/updating
-//the backup peer with files of the primary peer
+//the backupExists peer with files of the primary peer
 func UpdateBackupPeerStore(fileName string)  {
 	//check if the file is updated with the
-	//backup peer
+	//backupExists peer
 	if !index[fileName] {
-		//establish connection with the backup peer
+		//establish connection with the backupExists peer
 		conn := establishConnectionBackup(peerNode.backupPeer)
 
 		//create network encoders and decoders
@@ -48,51 +48,51 @@ func UpdateBackupPeerStore(fileName string)  {
 			err = enc.Encode(p)
 			utils.ValidateError(err)
 
-			fmt.Println(fileName + "  has been updated with the backup peer")
+			fmt.Println(fileName + "  has been updated with the backupExists peer")
 			conn.Close()
 		}
 	}
 }
 
 //Function which establishes connection with the
-//backup peer specified in the peer structure
+//backupExists peer specified in the peer structure
 //params:
 //	@backupPeer: string
 //		Variable which holds the network address
-//		of the backup peer
+//		of the backupExists peer
 //Returns: conn net.Conn
 //	Returns a pointer to the instance of the
-//	TCP connection establishes with the backup peer
+//	TCP connection establishes with the backupExists peer
 func establishConnectionBackup(networkAddr string) (conn net.Conn) {
 
 	//dial the connection to the
-	//backup based on the input parameter
+	//backupExists based on the input parameter
 	var err error
-	fmt.Println("Establishing connection with it backup: ", networkAddr)
+	fmt.Println("Establishing connection with it backupExists: ", networkAddr)
 	conn, err = net.Dial("tcp", networkAddr)
 	utils.ValidateError(err)
 
 	return
 }
 
-//Function which sends a request to the backup peer
+//Function which sends a request to the backupExists peer
 //based on the type of the request specified in the
 //parameter
 //params:
 //	@enc: gob.Encoder
 //		Variables which holds the encoder defined
 //		on the network connection defined for the
-//		backup peer
+//		backupExists peer
 //	@store: int
 //		Variable which holds the integer variable
 //		defining the type of request being sent
 //	@fileV: utils.File
 //		Variable which represents the utils.File
 //		instance defined for the file being sent to
-//		the backup peer
+//		the backupExists peer
 //Returns: ok bool
 //			Returns true if the file prerequisites have
-//			been updated with backup else false
+//			been updated with backupExists else false
 func sendProcessRequest(enc *gob.Encoder, dec *gob.Decoder, store int, fileV utils.File) (ok bool) {
 	//create the packet to send to the server
 	totalSize := unsafe.Sizeof(store) + unsafe.Sizeof(string(fileV.Name))

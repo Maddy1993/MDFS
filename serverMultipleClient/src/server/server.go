@@ -19,11 +19,13 @@ type master struct {
 	backupPeers map[string]string
 }
 
-var masterNode master
-var enc *gob.Encoder
-var dec *gob.Decoder
-var mutex = &sync.Mutex{}
-var previousPeer string
+var (
+	masterNode master
+	enc *gob.Encoder
+	dec *gob.Decoder
+	mutex = &sync.Mutex{}
+	previousPeer string
+	)
 
 ///////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////
@@ -58,6 +60,9 @@ to pass it to a go routine to handle the requests
 Returns: nil
 */
 func acceptAndProcess(node master) {
+
+	//heart beat signal handler
+	go heartBeatHandler()
 
 	//listen on the designates network address
 	adapter, err := net.Listen("tcp", node.networkAddr)

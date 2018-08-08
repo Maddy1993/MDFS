@@ -10,7 +10,8 @@ import (
 	"utils"
 	"os"
 	"path/filepath"
-	)
+	"io"
+)
 
 ////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////
@@ -22,7 +23,7 @@ type peer struct {
 	myPrimaryPeer string
 	backupPeer    string
 	masterNode    string
-	backup		   bool
+	backupExists  bool
 }
 
 //Global variables
@@ -66,7 +67,7 @@ func initializePeer(remoteAddr string, remotePort string) {
 		fmt.Printf("Conversion Error: %s", err.Error())
 	}
 
-	peerNode = peer{masterNode: address, backup:false}
+	peerNode = peer{masterNode: address, backupExists:false}
 
 	//Connect to serverBuild
 	//establishConnection(enc, dec)
@@ -202,7 +203,7 @@ func handleConnection(conn net.Conn) {
 	//read and decode the packet sent
 	var recv utils.Packet
 	err := dec.Decode(&recv)
-	if err != nil {
+	if err != nil && err != io.EOF {
 		fmt.Println("Error Decoding the incoming packet of the peer: ", err.Error())
 	}
 
@@ -218,7 +219,7 @@ func handleConnection(conn net.Conn) {
 		storeAndIndexFile(enc, dec, recv.PfileInfo)
 		p := peerNode
 		fmt.Println(p)
-		if peerNode.backup{
+		if peerNode.backupExists {
 			go UpdateBackupPeerStore(recv.PfileInfo.Name)
 		}
 		fmt.Println("Store request handled")
@@ -226,7 +227,7 @@ func handleConnection(conn net.Conn) {
 }
 
 /*
-Function which updates the backup peer in the
+Function which updates the backupExists peer in the
 current instance and sends the confirmation
 to the peer
 Params:
@@ -237,29 +238,30 @@ Params:
 Returns: Nil
 */
 func updateBackupPeer(encB *gob.Encoder, content string) {
-	//update the backup peer in the
+	//update the backupExists peer in the
 	//current instance
 	values := strings.Split(content, ",")
 	peerNode.backupPeer = values[0]
 	if values[1] == "true"{
-		peerNode.backup = true
+		peerNode.backupExists = true
 	} else {
-		peerNode.backup = false
+		peerNode.backupExists = false
+		peerNode.myPrimaryPeer = ""
 	}
 
-	//send the confirmation to the backup
+	//send the confirmation to the backupExists
 	//peer
 	pkt := utils.CreatePacket(utils.RESPONSE, "", 0)
 	err := encB.Encode(pkt)
 	if err != nil {
 		fmt.Println("Error while encoding response packet to the"+
-			"backup peer: ", err.Error())
+			"backupExists peer: ", err.Error())
 	}
 }
 
 /*
 Function which updates the primary
-peer about its new backup peer
+peer about its new backupExists peer
 */
 func updatePrimary() {
 
