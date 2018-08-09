@@ -36,6 +36,7 @@ var (
 	index         map[string]bool
 	dirPath       string
 	peerIdentfier string
+	printFlag			bool
 )
 
 ////////////////////////////////////////////////////////////
@@ -81,6 +82,7 @@ func initializePeer(remoteAddr string, remotePort string) {
 	d, _, _ := r.ReadLine()
 	dirPath = string(d)
 
+	printFlag = true
 
 	//Connect to serverBuild
 	//establishConnection(enc, dec)
@@ -216,6 +218,12 @@ Params: net.Conn
 Returns: Nil
 */
 func handleConnection(conn net.Conn) {
+	if printFlag{
+			fmt.Print(">> ")
+	}
+
+	printFlag = false
+
 	// Will write to network.
 	enc = gob.NewEncoder(conn)
 	// Will read from network.
@@ -234,21 +242,23 @@ func handleConnection(conn net.Conn) {
 		defer conn.Close()
 		updateBackupPeer(enc, recv.Pcontent)
 		fmt.Println("Backup Peer updated")
+		printFlag = true
 	case utils.STORE:
 		println("Store request received")
 		defer conn.Close()
 		storeAndIndexFile(enc, dec, recv.PfileInfo)
-		p := peerNode
-		fmt.Println(p)
+
 		if peerNode.backupExists {
 			go UpdateBackupPeerStore(recv.PfileInfo.Name)
 		}
 		fmt.Println("Store request handled")
+		printFlag = true
 	case utils.FETCH:
 		println("Fetch request received")
 		defer conn.Close()
 		fetchDataFromFile(enc, dec, recv.Pcontent)
 		println("Fetch request handled")
+		printFlag = true
 	}
 }
 

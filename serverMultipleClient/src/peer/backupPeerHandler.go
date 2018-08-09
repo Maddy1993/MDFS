@@ -48,7 +48,7 @@ func UpdateBackupPeerStore(fileName string)  {
 			err = enc.Encode(p)
 			utils.ValidateError(err)
 
-			fmt.Println(fileName + "  has been updated with the backupExists peer")
+			fmt.Println(fileName + "  has been updated with the backup peer")
 			conn.Close()
 		}
 	}
@@ -68,7 +68,7 @@ func establishConnectionBackup(networkAddr string) (conn net.Conn) {
 	//dial the connection to the
 	//backupExists based on the input parameter
 	var err error
-	fmt.Println("Establishing connection with it backupExists: ", networkAddr)
+	fmt.Println("Establishing connection with backup: ", networkAddr)
 	conn, err = net.Dial("tcp", networkAddr)
 	utils.ValidateError(err)
 

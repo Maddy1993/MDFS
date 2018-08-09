@@ -44,7 +44,7 @@ func handleConnection(conn net.Conn) {
 	if recv.Ptype == utils.STORE {
 		//var response utils.ClientResponse
 		// TODO: selecting the peers according to hash
-		fmt.Println("Sending Response to Client, content:", recv.Pcontent)
+
 		//var primary string
 		//for ip, _ := range masterNode.peers {
 		//	primary = ip
@@ -62,6 +62,7 @@ func handleConnection(conn net.Conn) {
 		enc = gob.NewEncoder(conn)
 		err := enc.Encode(response)
 		utils.ValidateError(err)
+		fmt.Println("Response sent to the client")
 	}
 
 	//close the connection

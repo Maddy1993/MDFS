@@ -137,7 +137,10 @@ func processAndValidate(command string) {
 		if primary != "" {
 			fmt.Printf("Primary %s, Secondary %s\n", primary, backup)
 			data := fetchDataFromPeer(tokens[1], filePeerMap[tokens[1]].primaryPeer, filePeerMap[tokens[1]].backupPeer)
-			fmt.Printf("Data from Peer received:\n%s\n", data)
+			o := writeToFile(data, tokens[1], dirPath)
+			if o{
+				fmt.Println("File Successfully written to the disk")
+			}
 		} else {
 			fmt.Println("Error retrieving file. System Failure. No Peers standing!!!")
 		}
@@ -145,11 +148,11 @@ func processAndValidate(command string) {
 }
 
 func fetchDataFromPeer(fileName string, primaryPeer string, backupPeer string) string {
-	conn, err := net.DialTimeout("tcp", primaryPeer, time.Duration(100))
+	conn, err := net.DialTimeout("tcp", primaryPeer, time.Duration(time.Duration(200*time.Millisecond)))
 	//utils.ValidateError(err)
 	if err != nil {
-		fmt.Printf("Primary Peer down Fetch from Backup\n")
-		conn, err = net.DialTimeout("tcp", backupPeer, time.Duration(100))
+		fmt.Printf("Primary Peer down Fetching from Backup\n")
+		conn, err = net.DialTimeout("tcp", backupPeer, time.Duration(time.Duration(200*time.Millisecond)))
 		utils.ValidateError(err)
 	}
 	totalSize := unsafe.Sizeof(utils.FETCH) + unsafe.Sizeof(fileName)
@@ -167,6 +170,30 @@ func fetchDataFromPeer(fileName string, primaryPeer string, backupPeer string) s
 	utils.ValidateError(err)
 	conn.Close()
 	return resp.Pcontent
+}
+
+//Function which writes to the file retrieved from the
+//peers
+//params:
+//	@data: string
+//		Consists of data converted from bytes into
+//		string format
+//	@fileName: string
+//		fileName of the file to be written.
+//	@dir: string
+//		directory path where the files is to be
+//		created
+//Returns: ok bool
+//		If the file is successfully written to
+//		the disk, returns true, else false
+func writeToFile(data string, fileName string, dir string) (ok bool) {
+	//open the file if exists or create one with
+	//that name
+	fileLoc := filepath.Join(dirPath, fileName)
+	err := ioutil.WriteFile(fileLoc, []byte(data), 0755)
+	utils.ValidateError(err)
+	ok = true
+	return
 }
 
 //Function which establishes a connection
