@@ -6,7 +6,7 @@ import (
 			"utils"
 	"encoding/gob"
 	"unsafe"
-)
+	)
 
 //Function which is spawned in a go routine
 //when the main server is initialized and is 
@@ -41,6 +41,7 @@ func sendHeartBeat()  {
 	//peers
 	primary := masterNode.peers
 	if len(primary) != 0{
+		//fmt.Println("Reached here")
 		for k := range primary{
 			establishConnection(k, "", "primary")
 			//if there exists a backup node for the
@@ -57,6 +58,7 @@ func sendHeartBeat()  {
 func establishConnection(networkAddr string, placeholer string, nodeType string)  {
 	//dial a TCP connection to peer
 	//if the connection is successful, the peer exists,
+	//fmt.Println("establishing connection with "+nodeType)
 	conn, err := net.Dial("tcp", networkAddr)
 
 	//get the pointer to the primary peer and backup

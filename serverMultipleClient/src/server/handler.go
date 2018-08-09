@@ -11,6 +11,13 @@ import (
 	"utils"
 )
 
+
+func MapRandomKeyGet(mapI interface{}) interface{} {
+	keys := reflect.ValueOf(mapI).MapKeys()
+
+	return keys[rand.Intn(len(keys))].Interface()
+}
+
 /*
 Function which handles the incoming
 peerBuild requests to the serverBuild.
@@ -19,13 +26,6 @@ other functions to complete the tasks
 
 Returns: nil
 */
-
-func MapRandomKeyGet(mapI interface{}) interface{} {
-	keys := reflect.ValueOf(mapI).MapKeys()
-
-	return keys[rand.Intn(len(keys))].Interface()
-}
-
 func handleConnection(conn net.Conn) {
 
 	//Receive and Decode the packet on the
@@ -50,9 +50,15 @@ func handleConnection(conn net.Conn) {
 		//	primary = ip
 		//	//fmt.Printf("IP: %s, Port: %d", ip, port)
 		//}
-		primary := MapRandomKeyGet(masterNode.peers)
-		backupPeer, _ := masterNode.backupPeers[primary.(string)]
-		response := utils.CreateClientResponse(utils.RESPONSE, primary.(string), backupPeer)
+		var response utils.ClientResponse
+		if len(masterNode.peers) > 0{
+			primary := MapRandomKeyGet(masterNode.peers)
+			backupPeer, _ := masterNode.backupPeers[primary.(string)]
+			response = utils.CreateClientResponse(utils.RESPONSE, primary.(string), backupPeer)
+		} else {
+			response = utils.CreateClientResponse(utils.RESPONSE, "", "")
+		}
+
 		enc = gob.NewEncoder(conn)
 		err := enc.Encode(response)
 		utils.ValidateError(err)

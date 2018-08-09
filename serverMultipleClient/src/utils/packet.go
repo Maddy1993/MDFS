@@ -133,6 +133,7 @@ Params:
 	err: Error
  */
 func ValidateError(err error)  {
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	if err != nil{
 		log.Fatal(err)
 	}

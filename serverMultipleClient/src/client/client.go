@@ -76,10 +76,13 @@ func initializeClient(remoteAddr string, remotePort string) {
 
 	//set the directory path from which the
 	//client can read the files
-	//r := bufio.NewReader(os.Stdin)
-	//dirPath, _ := r.ReadString('\n')
-	dirPath = "C:\\Users\\mohan\\Desktop\\Courses\\Projects\\MDFS\\serverMultipleClient\\clientFiles"
-	dirPath = "Z:\\MS_NEU\\Courses\\CS\\Project\\MDFS\\serverMultipleClient\\clientFiles"
+	r := bufio.NewReader(os.Stdin)
+	fmt.Println("Enter the Directory Path\n(Path where files that needs to be transferred are stored)")
+	d, _, _ := r.ReadLine()
+	dirPath = string(d)
+
+	//dirPath = "C:\\Users\\mohan\\Desktop\\Courses\\Projects\\MDFS\\serverMultipleClient\\clientFiles"
+	////dirPath = "Z:\\MS_NEU\\Courses\\CS\\Project\\MDFS\\serverMultipleClient\\clientFiles"
 }
 
 //Function which initializes the Command-line
@@ -123,14 +126,21 @@ func processAndValidate(command string) {
 
 		fileV := MakeFileStruct(tokens[1], dirPath, "")
 
-		println("Received primary details")
 		defer conn.Close()
 		sendFile(conn, fileV)
 		break
 	case "receive":
-		fmt.Printf("Primary %s, Secondary %s\n", filePeerMap[tokens[1]].primaryPeer, filePeerMap[tokens[1]].backupPeer)
-		data := fetchDataFromPeer(tokens[1], filePeerMap[tokens[1]].primaryPeer, filePeerMap[tokens[1]].backupPeer)
-		fmt.Printf("Data from Peer received:\n%s\n", data)
+		primary := filePeerMap[tokens[1]].primaryPeer
+		backup := filePeerMap[tokens[1]].backupPeer
+
+
+		if primary != "" {
+			fmt.Printf("Primary %s, Secondary %s\n", primary, backup)
+			data := fetchDataFromPeer(tokens[1], filePeerMap[tokens[1]].primaryPeer, filePeerMap[tokens[1]].backupPeer)
+			fmt.Printf("Data from Peer received:\n%s\n", data)
+		} else {
+			fmt.Println("Error retrieving file. System Failure. No Peers standing!!!")
+		}
 	}
 }
 
@@ -221,16 +231,23 @@ func sendFile(conn net.Conn, fileV utils.File) {
 	utils.ValidateError(err)
 
 	if response.Ptype == utils.RESPONSE {
-		fmt.Printf("Primary %s, Secondary %s\n", response.PrimaryNetAddr, response.BackupNetAddr)
-		fileV.PrimaryPeer = response.PrimaryNetAddr
-		fileV.BackupPeer = response.BackupNetAddr
-		filePeerMap[fileV.Name] = peerInfo{response.PrimaryNetAddr, response.BackupNetAddr}
+		if response.PrimaryNetAddr != "" {
+			fmt.Printf("Primary: %s, Secondary: %s\n", response.PrimaryNetAddr, response.BackupNetAddr)
+			fileV.PrimaryPeer = response.PrimaryNetAddr
+			fileV.BackupPeer = response.BackupNetAddr
+			filePeerMap[fileV.Name] = peerInfo{response.PrimaryNetAddr, response.BackupNetAddr}
+
+			//once the primary and backup peer
+			//credentials have been established,
+			//contact the primary and send the file.
+			sendData(fileV)
+			fmt.Println("Data Successfully sent to: "+response.PrimaryNetAddr)
+		} else {
+			fmt.Println("Error storing the file. System Failure. No Peers standing!!!")
+		}
 	}
 
-	//once the primary and backup peer
-	//credentials have been established,
-	//contact the primary and send the file.
-	sendData(fileV)
+
 }
 
 //Function which establishes connection
@@ -291,6 +308,7 @@ func sendData(fileV utils.File) {
 func MakeFileStruct(fileName string, d string, suffix string) (fileV utils.File) {
 	//create a struct for the file
 	f, err := os.Stat(filepath.Join(d, suffix+fileName))
+
 	utils.ValidateError(err)
 
 	fileV = utils.File{

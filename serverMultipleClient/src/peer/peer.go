@@ -12,6 +12,7 @@ import (
 	"strings"
 	"unsafe"
 	"utils"
+	"bufio"
 )
 
 ////////////////////////////////////////////////////////////
@@ -73,8 +74,13 @@ func initializePeer(remoteAddr string, remotePort string) {
 	//initialize the directory where the incoming
 	//files needs to be stored
 	//dirPath = filepath.Join(basePath, "peerFiles")
-	dirPath = "C:\\Users\\mohan\\Desktop\\Courses\\Projects\\MDFS\\serverMultipleClient\\peerFiles"
-	dirPath = "Z:\\MS_NEU\\Courses\\CS\\Project\\MDFS\\serverMultipleClient\\peerFiles"
+	//dirPath = "C:\\Users\\mohan\\Desktop\\Courses\\Projects\\MDFS\\serverMultipleClient\\peerFiles"
+	//dirPath = "Z:\\MS_NEU\\Courses\\CS\\Project\\MDFS\\serverMultipleClient\\peerFiles"
+	r := bufio.NewReader(os.Stdin)
+	fmt.Println("Enter the Directory Path\n(Path where files that needs to be transferred are stored)")
+	d, _, _ := r.ReadLine()
+	dirPath = string(d)
+
 
 	//Connect to serverBuild
 	//establishConnection(enc, dec)
@@ -150,14 +156,14 @@ func establishConnection() {
 	//initialize the directory where the incoming
 	//files needs to be stored
 	//dirPath = filepath.Join(basePath, "peerFiles")
-	if resp.Backup {
-		dirPath = "C:\\Users\\mohan\\Desktop\\Courses\\Projects\\MDFS\\serverMultipleClient\\backupPeerFiles"
-		dirPath = "Z:\\MS_NEU\\Courses\\CS\\Project\\MDFS\\serverMultipleClient\\backupPeerFiles"
-
-	} else {
-		dirPath = "C:\\Users\\mohan\\Desktop\\Courses\\Projects\\MDFS\\serverMultipleClient\\peerFiles"
-		dirPath = "Z:\\MS_NEU\\Courses\\CS\\Project\\MDFS\\serverMultipleClient\\peerFiles"
-	}
+	//if resp.Backup {
+	//	dirPath = "C:\\Users\\mohan\\Desktop\\Courses\\Projects\\MDFS\\serverMultipleClient\\backupPeerFiles"
+	//	//dirPath = "Z:\\MS_NEU\\Courses\\CS\\Project\\MDFS\\serverMultipleClient\\backupPeerFiles"
+	//
+	//} else {
+	//	dirPath = "C:\\Users\\mohan\\Desktop\\Courses\\Projects\\MDFS\\serverMultipleClient\\peerFiles"
+	//	//dirPath = "Z:\\MS_NEU\\Courses\\CS\\Project\\MDFS\\serverMultipleClient\\peerFiles"
+	//}
 
 	//initialize the peerIdentifier which will
 	//be added as a trailing identifier to every
@@ -389,8 +395,8 @@ func storeAndIndexFile(enc *gob.Encoder, dec *gob.Decoder, fileinfo utils.File) 
 
 	if ok {
 		//if the file exists
-		filePath := filepath.Join(dirPath, peerIdentfier+"_temp_"+fName)
-		file, err = os.OpenFile(filePath, os.O_WRONLY, 0755)
+		filePath := filepath.Join(dirPath, peerIdentfier+"temp_"+fName)
+		file, err = os.OpenFile(filePath, os.O_CREATE|os.O_WRONLY, 0755)
 		utils.ValidateError(err)
 	} else {
 		//if the file does not exist
@@ -431,7 +437,8 @@ func storeAndIndexFile(enc *gob.Encoder, dec *gob.Decoder, fileinfo utils.File) 
 	//if its temporary file, delete the original
 	//and the make the temporary copy the final copy
 	if ok {
-		err = os.Rename(fName, file.Name())
+		newFile := filepath.Join(dirPath,peerIdentfier+fName)
+		err = os.Rename(file.Name(), newFile)
 		utils.ValidateError(err)
 	}
 }
