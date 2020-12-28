@@ -1,4 +1,4 @@
-package server
+package apiserver
 
 import (
 	"encoding/gob"
@@ -8,10 +8,11 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
-	"utils"
+
+	utils "github.com/mohanpothukuchi/dfs/pkg/util"
 )
 
-
+//MapRandomKeyGet is.
 func MapRandomKeyGet(mapI interface{}) interface{} {
 	keys := reflect.ValueOf(mapI).MapKeys()
 
@@ -51,7 +52,7 @@ func handleConnection(conn net.Conn) {
 		//	//fmt.Printf("IP: %s, Port: %d", ip, port)
 		//}
 		var response utils.ClientResponse
-		if len(masterNode.peers) > 0{
+		if len(masterNode.peers) > 0 {
 			primary := MapRandomKeyGet(masterNode.peers)
 			backupPeer, _ := masterNode.backupPeers[primary.(string)]
 			response = utils.CreateClientResponse(utils.RESPONSE, primary.(string), backupPeer)
@@ -76,7 +77,7 @@ from a peer
 func validatePeer(conn net.Conn, recv utils.Packet) {
 	//debug
 	n := len(masterNode.peers)
-	b_n := len(masterNode.backupPeers)
+	bN := len(masterNode.backupPeers)
 
 	//get the address of the tcp-peerBuild
 	clientAddr := conn.RemoteAddr().String()
@@ -89,7 +90,7 @@ func validatePeer(conn net.Conn, recv utils.Packet) {
 	}
 
 	//if every peer registered has a backup
-	if n == b_n {
+	if n == bN {
 		mutex.Lock()
 		_, ok := masterNode.peers[clientAddr]
 		if !ok {
@@ -114,7 +115,7 @@ func validatePeer(conn net.Conn, recv utils.Packet) {
 		} else {
 			fmt.Println("Peer registration unsuccessful.")
 		}
-	} else if n > b_n { //when the recently added peer does
+	} else if n > bN { //when the recently added peer does
 		//not have a backup
 		mutex.Lock()
 		//masterNode.peers[clientAddr] = clientPort
@@ -129,7 +130,7 @@ func validatePeer(conn net.Conn, recv utils.Packet) {
 		}
 
 		//check if the peer has been added
-		if b_n != len(masterNode.backupPeers) {
+		if bN != len(masterNode.backupPeers) {
 			fmt.Println("Backup Peer added")
 		} else {
 			fmt.Println("Peer registration unsuccessful.")

@@ -1,19 +1,20 @@
-package server
+package apiserver
 
 import (
-	"time"
-	"net"
-			"utils"
 	"encoding/gob"
+	"net"
+	"time"
 	"unsafe"
-	)
+
+	utils "github.com/mohanpothukuchi/dfs/pkg/util"
+)
 
 //Function which is spawned in a go routine
-//when the main server is initialized and is 
+//when the main server is initialized and is
 //responsible to send heart beat messages to
 //the peers, if any and update its peer maintainance
 //structure, if required
-func heartBeatHandler()  {
+func heartBeatHandler() {
 	doEvery(200*time.Millisecond, sendHeartBeat)
 }
 
@@ -27,7 +28,7 @@ func heartBeatHandler()  {
 //	@hBeatFunc: func()
 //		Function which gets invoked every step
 //		in the interval
-func doEvery(timeV time.Duration, hBeatFunc func())  {
+func doEvery(timeV time.Duration, hBeatFunc func()) {
 	for range time.Tick(timeV) {
 		hBeatFunc()
 	}
@@ -36,17 +37,17 @@ func doEvery(timeV time.Duration, hBeatFunc func())  {
 //Function which sends the heart beat
 //to the peers updated in the master node
 //structure
-func sendHeartBeat()  {
+func sendHeartBeat() {
 	//check if there exists any primary
 	//peers
 	primary := masterNode.peers
-	if len(primary) != 0{
+	if len(primary) != 0 {
 		//fmt.Println("Reached here")
-		for k := range primary{
+		for k := range primary {
 			establishConnection(k, "", "primary")
 			//if there exists a backup node for the
 			//primary
-			if b, ok := masterNode.backupPeers[k];ok{
+			if b, ok := masterNode.backupPeers[k]; ok {
 				establishConnection(b, k, "backup")
 			}
 		}
@@ -55,7 +56,7 @@ func sendHeartBeat()  {
 
 //Function which establishes a UDP connection
 //with the peer and sends a heartbeat message
-func establishConnection(networkAddr string, placeholer string, nodeType string)  {
+func establishConnection(networkAddr string, placeholer string, nodeType string) {
 	//dial a TCP connection to peer
 	//if the connection is successful, the peer exists,
 	//fmt.Println("establishing connection with "+nodeType)
@@ -68,7 +69,7 @@ func establishConnection(networkAddr string, placeholer string, nodeType string)
 
 	//based on the error, perform the
 	//structure modifications
-	if err != nil{
+	if err != nil {
 		mutex.Lock()
 		{
 			//if the node is of type primary
@@ -76,9 +77,9 @@ func establishConnection(networkAddr string, placeholer string, nodeType string)
 			//from the primary peer structure
 			//and replace backup peer address as
 			//primary
-			if nodeType == "primary"{
+			if nodeType == "primary" {
 				delete(primary, networkAddr)
-				if _, ok := backup[networkAddr]; ok{
+				if _, ok := backup[networkAddr]; ok {
 					backupAddr := backup[networkAddr]
 					delete(backup, networkAddr)
 					go updatePeer(backupAddr)
@@ -107,7 +108,7 @@ func establishConnection(networkAddr string, placeholer string, nodeType string)
 //	@addr: string
 //		Specifies the network address of the peer
 //		to connect
-func updatePeer(addr string)  {
+func updatePeer(addr string) {
 	//dial a tcp connection
 	conn, err := net.Dial("tcp", addr)
 	utils.ValidateError(err)
@@ -127,7 +128,7 @@ func updatePeer(addr string)  {
 	//the peer
 	err = decoder.Decode(&pkt)
 	utils.ValidateError(err)
-	if pkt.Ptype == utils.RESPONSE{
+	if pkt.Ptype == utils.RESPONSE {
 		conn.Close()
 	}
 }
